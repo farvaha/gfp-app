@@ -9,9 +9,8 @@ jobs:
     steps:
       - name: Chunk size threshold
         run: |
-          for mb in 8 16 24 32; do
-            head -c ${mb}000000 /dev/zero > f.bin
-            echo "=== ${mb}MB ==="
-            curl -sS -o resp.txt -w "HTTP:%{http_code}\n" --max-time 180 -X POST -H "X-GFP-Deploy: probe" -H "Content-Type: application/octet-stream" --data-binary @f.bin "https://getfitplans.com/wp-json/gfp/v1/app-apk-chunk?buildId=deadbeef&idx=0" || echo "CURLEXIT:$?"
-            head -c 150 resp.txt || true; echo
+          for kb in 9000 10000 11000 12000 14000; do
+            head -c ${kb}000 /dev/zero > f.bin
+            echo "=== ${kb}KB ==="
+            curl -sS -o /dev/null -w "HTTP:%{http_code}\n" --max-time 120 -X POST -H "X-GFP-Deploy: probe" -H "Content-Type: application/octet-stream" --data-binary @f.bin "https://getfitplans.com/wp-json/gfp/v1/app-apk-chunk?buildId=deadbeef&idx=0" || echo "CURLEXIT:$?"
           done
