@@ -7,18 +7,9 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: Size and UA probes
+      - name: Cookie jar redirect test
         run: |
-          head -c 2000000 /dev/zero > small.bin
           head -c 95000000 /dev/zero > big.bin
-          for ua in "curl-default" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"; do
-            for f in small.bin big.bin; do
-              echo "=== UA=$ua FILE=$f ==="
-              if [ "$ua" = "curl-default" ]; then
-                curl -sS -o resp.txt -w "HTTP:%{http_code} REDIR:%{redirect_url}\n" -X POST -H "X-GFP-Deploy: probe" -F "apk=@$f;filename=t.apk" https://getfitplans.com/wp-json/gfp/v1/app-apk-receive || echo "CURLEXIT:$?"
-              else
-                curl -sS -o resp.txt -w "HTTP:%{http_code} REDIR:%{redirect_url}\n" -X POST -A "$ua" -H "X-GFP-Deploy: probe" -F "apk=@$f;filename=t.apk" https://getfitplans.com/wp-json/gfp/v1/app-apk-receive || echo "CURLEXIT:$?"
-              fi
-              head -c 200 resp.txt; echo
-            done
-          done
+          curl -sS -o resp.txt -w "HTTP:%{http_code} REDIRS:%{num_redirects}\n" -L --max-redirs 10 -c jar.txt -b jar.txt -X POST -H "X-GFP-Deploy: probe" -F "apk=@big.bin;filename=t.apk" https://getfitplans.com/wp-json/gfp/v1/app-apk-receive || echo "CURLEXIT:$?"
+          head -c 300 resp.txt; echo
+          echo COOKIELINES:$(grep -c . jar.txt || true)
