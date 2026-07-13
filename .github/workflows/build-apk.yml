@@ -89,12 +89,35 @@ jobs:
           path: GetFitPlans.apk
           retention-days: 30
 
-      - name: Deliver APK to WordPress
+      - name: Deliver APK to WordPress (chunked)
+        env:
+          GFP_TOKEN: ${{ secrets.GFP_DEPLOY_TOKEN }}
         run: |
-          RESP=$(curl -sS -L --max-redirs 5 --fail-with-body -X POST \
-            -H "X-GFP-Deploy: ${{ secrets.GFP_DEPLOY_TOKEN }}" \
-            -F "apk=@GetFitPlans.apk" \
-            -F "versionCode=${{ github.run_number }}" \
-            "https://getfitplans.com/wp-json/gfp/v1/app-apk-receive")
+          set -e
+          BASE="https://getfitplans.com/wp-json/gfp/v1"
+          SHA=$(sha256sum GetFitPlans.apk | cut -d' ' -f1)
+          SIZE=$(stat -c%s GetFitPlans.apk)
+          BID=$(openssl rand -hex 12)
+          split -b 8000000 -d -a 3 GetFitPlans.apk part_
+          i=0
+          for f in part_*; do
+            for attempt in 1 2 3; do
+              RESP=$(curl -sS --max-time 120 -X POST \
+                -H "X-GFP-Deploy: $GFP_TOKEN" \
+                -H "Content-Type: application/octet-stream" \
+                --data-binary @"$f" \
+                "$BASE/app-apk-chunk?buildId=$BID&idx=$i") && \
+                echo "$RESP" | grep -q '"ok":true' && break
+              if echo "$RESP" | grep -q "Expected chunk $((i+1)),"; then echo "chunk $i already applied"; break; fi
+              echo "chunk $i attempt $attempt failed: $RESP"
+              if [ "$attempt" = "3" ]; then exit 1; fi
+              sleep 5
+            done
+            echo "chunk $i ok"
+            i=$((i+1))
+          done
+          RESP=$(curl -sS --max-time 120 -X POST \
+            -H "X-GFP-Deploy: $GFP_TOKEN" \
+            "$BASE/app-apk-finalize?buildId=$BID&versionCode=${{ github.run_number }}&sha256=$SHA&size=$SIZE")
           echo "$RESP"
           echo "$RESP" | grep -q '"ok":true'
