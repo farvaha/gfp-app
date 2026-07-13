@@ -7,10 +7,11 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: Chunk size threshold
+      - name: Fetch source probe
         run: |
-          for kb in 9000 10000 11000 12000 14000; do
-            head -c ${kb}000 /dev/zero > f.bin
-            echo "=== ${kb}KB ==="
-            curl -sS -o /dev/null -w "HTTP:%{http_code}\n" --max-time 120 -X POST -H "X-GFP-Deploy: probe" -H "Content-Type: application/octet-stream" --data-binary @f.bin "https://getfitplans.com/wp-json/gfp/v1/app-apk-chunk?buildId=deadbeef&idx=0" || echo "CURLEXIT:$?"
-          done
+          echo '--- default curl UA ---'
+          curl -sSL -o s1.zip -w "HTTP:%{http_code} SIZE:%{size_download}\n" "https://getfitplans.com/wp-content/uploads/2026/07/gfp-app-src-3062be8e.zip" || echo "EXIT:$?"
+          echo '--- browser UA ---'
+          curl -sSL -o s2.zip -w "HTTP:%{http_code} SIZE:%{size_download}\n" -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36" "https://getfitplans.com/wp-content/uploads/2026/07/gfp-app-src-3062be8e.zip" || echo "EXIT:$?"
+          echo '--- headers ---'
+          curl -sSI "https://getfitplans.com/wp-content/uploads/2026/07/gfp-app-src-3062be8e.zip" | head -20 || true
