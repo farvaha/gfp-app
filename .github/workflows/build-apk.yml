@@ -32,6 +32,12 @@ jobs:
         working-directory: gfp-app
         run: npm install
 
+      - name: Patch cookies lib for Gradle 9 (jcenter removed)
+        working-directory: gfp-app
+        run: |
+          sed -i 's/jcenter()/mavenCentral()/g' node_modules/@react-native-cookies/cookies/android/build.gradle
+          grep -n 'mavenCentral()' node_modules/@react-native-cookies/cookies/android/build.gradle
+
       - name: Generate app icons
         working-directory: gfp-app
         run: node scripts/icons.js
