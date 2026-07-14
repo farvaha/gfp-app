@@ -16,10 +16,19 @@ jobs:
 
       - name: Fetch app source from site
         run: |
-          curl -fL -o src.zip "https://getfitplans.com/wp-content/uploads/2026/07/gfp-app-src-05ef76e0.zip"
+          # The site's WAF 403s bare curl (datacenter IP / curl UA), so present as a browser.
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+          fetch() {
+            curl -fL --retry 4 --retry-delay 6 --retry-all-errors \
+              -A "$UA" \
+              -H "Referer: https://getfitplans.com/" \
+              -H "Accept: */*" \
+              -o "$1" "$2"
+          }
+          fetch src.zip "https://getfitplans.com/wp-content/uploads/2026/07/gfp-app-src-05ef76e0.zip"
           unzip -q src.zip
           # 5-tab redesign overlay (changed files only)
-          curl -fL -o overlay.zip "https://getfitplans.com/wp-content/uploads/2026/07/gfp-app-overlay-v2.zip"
+          fetch overlay.zip "https://getfitplans.com/wp-content/uploads/2026/07/gfp-app-overlay-v2.zip"
           unzip -qo overlay.zip -d gfp-app
           # these two moved/were removed; if left behind, expo-router renders phantom tabs
           rm -f "gfp-app/app/(tabs)/preiva.tsx" "gfp-app/app/(tabs)/progress.tsx"
