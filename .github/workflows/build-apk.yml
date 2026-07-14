@@ -127,29 +127,50 @@ jobs:
         run: |
           set -e
           BASE="https://getfitplans.com/wp-json/gfp/v1"
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
           SHA=$(sha256sum GetFitPlans.apk | cut -d' ' -f1)
           SIZE=$(stat -c%s GetFitPlans.apk)
-          BID=$(openssl rand -hex 12)
+          echo "apk size=$SIZE sha=$SHA"
           split -b 8000000 -d -a 3 GetFitPlans.apk part_
-          i=0
-          for f in part_*; do
-            for attempt in 1 2 3; do
-              RESP=$(curl -sS --max-time 120 -X POST \
-                -H "X-GFP-Deploy: $GFP_TOKEN" \
-                -H "Content-Type: application/octet-stream" \
-                --data-binary @"$f" \
-                "$BASE/app-apk-chunk?buildId=$BID&idx=$i") && \
-                echo "$RESP" | grep -q '"ok":true' && break
-              if echo "$RESP" | grep -q "Expected chunk $((i+1)),"; then echo "chunk $i already applied"; break; fi
-              echo "chunk $i attempt $attempt failed: $RESP"
-              if [ "$attempt" = "3" ]; then exit 1; fi
-              sleep 5
+
+          # -L is essential: the proxy 307-redirects POSTs, and without following
+          # the redirect the body is cut mid-upload and the chunk lands truncated.
+          post() {
+            curl -sS -L --max-time 180 -X POST \
+              -A "$UA" \
+              -H "Referer: https://getfitplans.com/" \
+              -H "X-GFP-Deploy: $GFP_TOKEN" \
+              "$@"
+          }
+
+          deliver() {
+            BID=$(openssl rand -hex 12)
+            echo "delivery buildId=$BID"
+            i=0
+            for f in part_*; do
+              RESP=$(post -H "Content-Type: application/octet-stream" \
+                          --data-binary @"$f" \
+                          "$BASE/app-apk-chunk?buildId=$BID&idx=$i") || true
+              if ! echo "$RESP" | grep -q '"ok":true'; then
+                echo "chunk $i failed: $RESP"
+                return 1
+              fi
+              echo "chunk $i ok"
+              i=$((i+1))
             done
-            echo "chunk $i ok"
-            i=$((i+1))
+            RESP=$(post "$BASE/app-apk-finalize?buildId=$BID&versionCode=${{ github.run_number }}&sha256=$SHA&size=$SIZE") || true
+            echo "$RESP"
+            echo "$RESP" | grep -q '"ok":true'
+          }
+
+          # Any failure restarts the whole upload with a fresh buildId, so a partial
+          # chunk can never be mistaken for a complete one.
+          for attempt in 1 2 3; do
+            if deliver; then
+              echo "delivered on attempt $attempt"
+              exit 0
+            fi
+            echo "delivery attempt $attempt failed; restarting clean"
+            sleep 15
           done
-          RESP=$(curl -sS --max-time 120 -X POST \
-            -H "X-GFP-Deploy: $GFP_TOKEN" \
-            "$BASE/app-apk-finalize?buildId=$BID&versionCode=${{ github.run_number }}&sha256=$SHA&size=$SIZE")
-          echo "$RESP"
-          echo "$RESP" | grep -q '"ok":true'
+          exit 1
