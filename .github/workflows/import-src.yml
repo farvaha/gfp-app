@@ -1,0 +1,40 @@
+name: Import app source into repo
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch and merge source (base + v2 overlay)
+        run: |
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+          fetch() {
+            curl -fL --retry 4 --retry-delay 6 --retry-all-errors \
+              -A "$UA" \
+              -H "Referer: https://getfitplans.com/" \
+              -H "Accept: */*" \
+              -o "$1" "$2"
+          }
+          fetch src.zip "https://getfitplans.com/wp-content/uploads/2026/07/gfp-app-src-05ef76e0.zip"
+          unzip -q src.zip
+          fetch overlay.zip "https://getfitplans.com/wp-content/uploads/2026/07/gfp-app-overlay-v2.zip"
+          unzip -qo overlay.zip -d gfp-app
+          rm -f "gfp-app/app/(tabs)/preiva.tsx" "gfp-app/app/(tabs)/progress.tsx"
+          rm -rf gfp-app/node_modules gfp-app/android gfp-app/.expo
+          rm -f src.zip overlay.zip
+          echo "files: $(find gfp-app -type f | wc -l)"
+
+      - name: Commit source
+        run: |
+          git config user.name "gfp-ci"
+          git config user.email "ci@getfitplans.com"
+          git add -A gfp-app
+          git commit -m "chore: import app source as repo source of truth (base 05ef76e0 + overlay v2) [skip ci]"
+          git push
