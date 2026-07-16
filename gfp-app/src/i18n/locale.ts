@@ -47,12 +47,22 @@ export function useLocale() {
     setLocale(current === 'en' ? 'hi' : 'en');
   }, []);
 
+  const withLang = useCallback(
+    (url: string) => {
+      if (locale !== 'hi') return url;
+      return url + (url.includes('?') ? '&' : '?') + 'lang=hi';
+    },
+    [locale],
+  );
+
   return {
     locale,
     toggle,
     label: locale === 'en' ? 'EN' : 'हि',
     /** append to a website URL so WebView flows open in the same language */
     qs: locale === 'hi' ? '?lang=hi' : '',
+    /** query-aware variant — safe for URLs that already carry parameters */
+    withLang,
   };
 }
 
