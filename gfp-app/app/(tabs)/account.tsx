@@ -12,11 +12,11 @@ import { C, F } from '../../constants/gfp';
 export default function AccountScreen() {
   const router = useRouter();
   const { user, logout } = useAuth();
-  const { qs } = useLocale();
+  const { withLang } = useLocale();
   const billing = useCached<any>('billing', EP.billing);
 
   const open = (url: string) =>
-    router.push({ pathname: '/web', params: { url: url + qs, mode: 'page' } });
+    router.push({ pathname: '/web', params: { url: withLang(url), mode: 'page' } });
 
   const b = billing.data;
 

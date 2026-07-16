@@ -110,12 +110,17 @@ export default function TrainScreen() {
       if (loggedId) {
         await Api.patchWorkout(loggedId, { sets, status });
       } else {
-        await Api.startWorkout({
+        // The server's POST /workouts only creates the row (it ignores `sets`
+        // and `status` and always inserts an empty in_progress workout), so
+        // create first, then PATCH the real payload onto the new id —
+        // otherwise the user's first save silently drops every set.
+        const created: any = await Api.startWorkout({
           day_index: dayIdx,
           protocol_id: prot.data?.id,
-          sets,
-          status,
         });
+        if (created?.id) {
+          await Api.patchWorkout(Number(created.id), { sets, status });
+        }
       }
       await wk.refresh();
       adh.refresh();
@@ -282,8 +287,8 @@ function SportSession() {
     <Card>
       <H2>Sport session</H2>
       <View style={st.pair}>
-        <TextInput value={sport} onChangeText={setSport} placeholder="Sport" placeholderTextColor={C.muted} style={[st.input, st.flex]} />
-        <TextInput value={type} onChangeText={setType} placeholder="Type" placeholderTextColor={C.muted} style={[st.input, st.flex]} />
+        <TextInput value={sport} onChangeText={setSport} placeholder="Sport (e.g. soccer)" placeholderTextColor={C.muted} style={[st.input, st.flex]} />
+        <TextInput value={type} onChangeText={setType} placeholder="Type (e.g. practice)" placeholderTextColor={C.muted} style={[st.input, st.flex]} />
       </View>
       <View style={st.pair}>
         <TextInput value={dur} onChangeText={setDur} placeholder="Minutes" placeholderTextColor={C.muted} keyboardType="number-pad" style={[st.input, st.flex]} />

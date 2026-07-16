@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useUpdateCheck } from '../../src/hooks/useUpdateCheck';
 import { C, F, R } from '../../constants/gfp';
 
 const BAR_HEIGHT = 60;
@@ -20,6 +21,8 @@ function CenterButton({ focused }: { focused: boolean }) {
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  // Checks /gfp/v1/app-version at most every 6h and offers the new APK.
+  useUpdateCheck();
 
   return (
     <Tabs

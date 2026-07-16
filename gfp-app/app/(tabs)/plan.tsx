@@ -10,12 +10,12 @@ import { C, F } from '../../constants/gfp';
 
 export default function PlanScreen() {
   const router = useRouter();
-  const { qs } = useLocale();
+  const { withLang } = useLocale();
   const prot = useCached<any>('active-protocol', EP.activeProtocol);
   const c = prot.data?.computed;
 
   const open = (url: string) =>
-    router.push({ pathname: '/web', params: { url: url + qs, mode: 'page' } });
+    router.push({ pathname: '/web', params: { url: withLang(url), mode: 'page' } });
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>

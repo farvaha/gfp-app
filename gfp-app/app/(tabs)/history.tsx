@@ -67,7 +67,7 @@ export default function HistoryScreen() {
               ) : (
                 day.meals.map((m: any, i: number) => (
                   <Text key={i} style={st.line}>
-                    • {m.meal_slot || 'Meal'} — {Math.round(m.kcal || 0)} kcal, {Math.round(m.protein_g || m.protein || 0)}g protein
+                    • {m.raw_text || m.meal_slot || 'Meal'} — {Math.round(Number(m.est_kcal ?? m.kcal) || 0)} kcal, {Math.round(Number(m.est_protein_g ?? m.protein_g ?? m.protein) || 0)}g protein
                   </Text>
                 ))
               )}
@@ -78,7 +78,7 @@ export default function HistoryScreen() {
               ) : (
                 day.workouts.map((w: any, i: number) => (
                   <Text key={i} style={st.line}>
-                    • {w.title || w.day || 'Workout'} — {w.status || 'logged'}
+                    • {w.title || w.day || (w.day_index ? `Day ${w.day_index}` : 'Workout')} — {w.status || 'logged'}
                   </Text>
                 ))
               )}

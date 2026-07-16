@@ -154,14 +154,22 @@ export default function TodayScreen() {
           {mealsLogged === 0 ? (
             <Muted>Nothing logged yet today.</Muted>
           ) : (
-            meals.data.meals.map((m: any, i: number) => (
+            meals.data.meals.map((m: any, i: number) => {
+              // Server rows are raw meal_logs columns: raw_text, meal_slot,
+              // est_kcal, est_protein_g. Old names kept as fallbacks for
+              // anything still sitting in the on-device cache.
+              const slot = String(m.meal_slot || m.slot || '');
+              const slotNice = slot ? slot.charAt(0).toUpperCase() + slot.slice(1) : '';
+              const kcal = Math.round(Number(m.est_kcal ?? m.kcal) || 0);
+              const protein = Math.round(Number(m.est_protein_g ?? m.protein) || 0);
+              return (
               <View key={m.id ?? i} style={styles.mealRow}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.mealName} numberOfLines={1}>
-                    {m.slot || m.title || m.items || 'Meal'}
+                    {m.raw_text || m.title || slotNice || 'Meal'}
                   </Text>
                   <Text style={styles.mealMeta}>
-                    {Math.round(m.kcal || 0)} kcal · {Math.round(m.protein || 0)}g protein
+                    {slotNice ? `${slotNice} · ` : ''}{kcal} kcal · {protein}g protein
                   </Text>
                 </View>
                 <Btn
@@ -187,7 +195,8 @@ export default function TodayScreen() {
                   }
                 />
               </View>
-            ))
+              );
+            })
           )}
 
           <Btn
