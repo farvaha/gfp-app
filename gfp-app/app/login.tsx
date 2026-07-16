@@ -10,8 +10,8 @@ import { WEB } from '../src/api/endpoints';
 export default function Landing() {
   const router = useRouter();
 
-  const go = (uri: string) =>
-    router.push({ pathname: '/web', params: { uri, mode: 'auth' } });
+  const go = (url: string) =>
+    router.push({ pathname: '/web', params: { url, mode: 'auth' } });
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>

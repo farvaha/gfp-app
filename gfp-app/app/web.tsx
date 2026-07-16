@@ -12,12 +12,14 @@ import { WEB } from '../src/api/endpoints';
 // mode="auth"  -> after login is detected, capture nonce and jump to native tabs.
 // mode="page"  -> plain in-app browser (pricing, PDF view, etc.), no redirect.
 export default function WebScreen() {
-  const params = useLocalSearchParams<{ uri?: string; mode?: string; title?: string }>();
+  const params = useLocalSearchParams<{ url?: string; uri?: string; mode?: string; title?: string }>();
   const router = useRouter();
   const { onWebAuth } = useAuth();
   const jumped = useRef(false);
 
-  const uri = (params.uri as string) || WEB.companion;
+  // Screens pass `url`; the landing historically passed `uri`. Accept both so
+  // no caller can silently fall through to the Companion page.
+  const uri = (params.url as string) || (params.uri as string) || WEB.companion;
   const mode = (params.mode as string) || 'page';
 
   const handleAuth = useCallback(
