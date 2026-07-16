@@ -1,0 +1,82 @@
+name: Build GetFitPlans APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Set versionCode from run number
+        run: |
+          node -e "
+            const fs = require('fs');
+            const a = JSON.parse(fs.readFileSync('app.json','utf8'));
+            a.expo.android = a.expo.android || {};
+            a.expo.android.versionCode = ${{ github.run_number }};
+            fs.writeFileSync('app.json', JSON.stringify(a, null, 2));
+          "
+
+      - name: Generate native Android project
+        run: npx expo prebuild --platform android --no-install
+
+      - name: Ensure persistent release keystore
+        id: keystore
+        run: |
+          if [ ! -f release.keystore ]; then
+            keytool -genkeypair -v \
+              -keystore release.keystore \
+              -alias androiddebugkey \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass android -keypass android \
+              -dname "CN=GetFitPlans, O=GetFitPlans, C=IN"
+            echo "generated=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "generated=false" >> "$GITHUB_OUTPUT"
+          fi
+          # Expo's release build signs with the debug signing config by default;
+          # dropping our persistent keystore in its place gives every build the
+          # same stable signature so installed apps update in place.
+          cp release.keystore android/app/debug.keystore
+
+      - name: Commit keystore back to repo (first run only)
+        if: steps.keystore.outputs.generated == 'true'
+        run: |
+          git config user.name "gfp-ci"
+          git config user.email "ci@getfitplans.com"
+          git add release.keystore
+          git commit -m "ci: persist release keystore"
+          git push
+
+      - name: Build release APK
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Rename artifact
+        run: cp android/app/build/outputs/apk/release/app-release.apk GetFitPlans.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GetFitPlans-APK
+          path: GetFitPlans.apk
+          retention-days: 30
