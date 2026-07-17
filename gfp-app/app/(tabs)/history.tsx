@@ -13,8 +13,17 @@ export default function HistoryScreen() {
   const [day, setDay] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  const list: string[] = dates.data?.dates ?? [];
-  const active = picked ?? dates.data?.today ?? null;
+  // Coerce to plain date strings — the server has occasionally returned objects
+  // here, and rendering a non-string (or calling .slice on it) would crash the
+  // whole tab. Normalise defensively so this screen can't take the app down.
+  const rawDates = dates.data?.dates;
+  const list: string[] = Array.isArray(rawDates)
+    ? rawDates
+        .map((x: any) => (typeof x === 'string' ? x : x?.date ?? x?.d ?? x?.log_date ?? ''))
+        .filter((x: any): x is string => typeof x === 'string' && x.length > 0)
+    : [];
+  const active =
+    picked ?? (typeof dates.data?.today === 'string' ? dates.data.today : list[0]) ?? null;
 
   useEffect(() => {
     if (!active) return;
@@ -42,7 +51,7 @@ export default function HistoryScreen() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.chips}>
             {list.slice(0, 30).map((d) => (
               <Text key={d} onPress={() => setPicked(d)} style={[st.chip, d === active && st.chipOn]}>
-                {d.slice(5)}
+                {String(d).length > 5 ? String(d).slice(5) : String(d)}
               </Text>
             ))}
           </ScrollView>

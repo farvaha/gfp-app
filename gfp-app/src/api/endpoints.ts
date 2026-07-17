@@ -24,6 +24,7 @@ export const EP = {
   // companion data
   plan: '/gfp/v1/companion/plan',
   billing: '/gfp/v1/companion/billing',
+  protocols: '/gfp/v1/companion/protocols',            // POST to save a built plan
   activeProtocol: '/gfp/v1/companion/protocols/active',
   dailySummary: '/gfp/v1/companion/daily-summary',
   adherenceToday: '/gfp/v1/companion/adherence/today',

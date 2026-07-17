@@ -4,7 +4,14 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUpdateCheck } from '../../src/hooks/useUpdateCheck';
+import { RouteError } from '../../components/RouteError';
 import { C, F, R } from '../../constants/gfp';
+
+// Catches render errors in any tab screen (e.g. History) so one bad screen
+// shows a recoverable card instead of closing the whole app.
+export function ErrorBoundary(props: { error: Error; retry: () => void }) {
+  return <RouteError {...props} />;
+}
 
 const BAR_HEIGHT = 60;
 

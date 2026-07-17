@@ -28,6 +28,19 @@ export async function setNonce(n: string | null) {
 
 export function getNonce() { return nonce; }
 
+/**
+ * WordPress cookie-auth REST calls need an X-WP-Nonce for writes. The login /
+ * register endpoints may hand it back under any of a few common keys — grab it
+ * from wherever it lands so meal/workout/plan writes work right after sign-in.
+ */
+async function captureNonce(res: any): Promise<void> {
+  if (!res || typeof res !== 'object') return;
+  const n =
+    res.nonce ?? res.rest_nonce ?? res._wpnonce ?? res.wp_nonce ??
+    res.data?.nonce ?? res.user?.nonce;
+  if (typeof n === 'string' && n) await setNonce(n);
+}
+
 export class ApiError extends Error {
   status: number;
   code: string;
@@ -157,6 +170,40 @@ export const Api = {
   }) => api(EP.checkins, { method: 'POST', body: payload }),
   chat: (payload: any) => api(EP.preiva, { method: 'POST', body: payload }),
   logout: () => api(EP.logout, { method: 'POST', noAuthRedirect: true }),
+
+  // --- native auth (cookie session, email + password) ---
+  /** POST /auth/login — establishes the WordPress cookie session in the shared
+   *  native cookie jar and returns the current user. The REST nonce (needed for
+   *  writes) is harvested from the response's x-wp-nonce header by api()
+   *  automatically; we also accept it in the body if the server sends it there. */
+  login: async (email: string, password: string) => {
+    const res = await api<any>(EP.login, {
+      method: 'POST',
+      body: { email, password, username: email },
+      noAuthRedirect: true,
+    });
+    await captureNonce(res);
+    return res;
+  },
+  /** POST /auth/register — create an account. If the server logs the user in on
+   *  register, the cookie session is already live afterwards. */
+  register: async (payload: { email: string; password: string; name?: string }) => {
+    const res = await api<any>(EP.register, {
+      method: 'POST',
+      body: { ...payload, username: payload.email },
+      noAuthRedirect: true,
+    });
+    await captureNonce(res);
+    return res;
+  },
+  /** POST /auth/forgot-password — trigger a reset email. */
+  forgot: (email: string) =>
+    api(EP.forgot, { method: 'POST', body: { email }, noAuthRedirect: true }),
+
+  /** POST /companion/protocols — save a Build-My-Plan protocol (builder_state +
+   *  client-computed target_kcal). Returns the created/active protocol. */
+  createProtocol: (payload: any) =>
+    api<any>(EP.protocols, { method: 'POST', body: payload }),
 
   // --- reads (verified routes) ---
   goalProgress: () => api<any>(EP.goalProgress),

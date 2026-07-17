@@ -4,10 +4,11 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { Card, H2, Muted, Btn, MacroBar, Chip } from '../../components/ui';
 import { PhotoMealSheet, PhotoEstimate } from '../../components/PhotoMealSheet';
+import { ManualMealSheet } from '../../components/ManualMealSheet';
 import { AppHeader } from '../../components/AppHeader';
 import { useCached } from '../../src/hooks/useCached';
 import { Api } from '../../src/api/client';
-import { EP, WEB } from '../../src/api/endpoints';
+import { EP } from '../../src/api/endpoints';
 import { macroTargets } from '../../src/lib/macros';
 import { C, F, R } from '../../constants/gfp';
 
@@ -16,6 +17,8 @@ export default function TodayScreen() {
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
   const [estimate, setEstimate] = useState<PhotoEstimate | null>(null);
+  const [manualOpen, setManualOpen] = useState(false);
+  const [manualSaving, setManualSaving] = useState(false);
 
   const prot = useCached<any>('active-protocol', EP.activeProtocol);
   const meals = useCached<any>('meals-today', EP.meals);
@@ -68,8 +71,7 @@ export default function TodayScreen() {
           { text: 'Not now' },
           {
             text: 'See plans',
-            onPress: () =>
-              router.push({ pathname: '/web', params: { url: WEB.companion, mode: 'page' } }),
+            onPress: () => router.push('/(tabs)/account'),
           },
         ]);
       } else {
@@ -91,6 +93,20 @@ export default function TodayScreen() {
       Alert.alert('Could not save', e?.message || 'Please try again.');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function saveManualMeal(v: { raw_text: string; meal_slot: string }) {
+    setManualSaving(true);
+    try {
+      await Api.logMeal(v);
+      setManualOpen(false);
+      meals.refresh();
+      adh.refresh();
+    } catch (e: any) {
+      Alert.alert('Could not save', e?.message || 'Please try again.');
+    } finally {
+      setManualSaving(false);
     }
   }
 
@@ -208,7 +224,7 @@ export default function TodayScreen() {
           <Btn
             label="Log meal manually"
             kind="ghost"
-            onPress={() => router.push({ pathname: '/web', params: { url: WEB.companion, mode: 'page' } })}
+            onPress={() => setManualOpen(true)}
             style={{ marginTop: 8 }}
           />
         </Card>
@@ -239,6 +255,13 @@ export default function TodayScreen() {
         saving={saving}
         onCancel={() => setEstimate(null)}
         onSave={savePhoto}
+      />
+
+      <ManualMealSheet
+        visible={manualOpen}
+        saving={manualSaving}
+        onCancel={() => setManualOpen(false)}
+        onSave={saveManualMeal}
       />
     </View>
   );

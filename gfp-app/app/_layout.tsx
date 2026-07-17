@@ -15,7 +15,14 @@ import {
   PlusJakartaSans_800ExtraBold,
 } from '@expo-google-fonts/plus-jakarta-sans';
 import { AuthProvider, useAuth } from '../src/auth/AuthContext';
+import { RouteError } from '../components/RouteError';
 import { C } from '../constants/gfp';
+
+// Expo Router renders this if anything below the root throws while rendering,
+// so a bad screen shows a recoverable card instead of closing the app.
+export function ErrorBoundary(props: { error: Error; retry: () => void }) {
+  return <RouteError {...props} />;
+}
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 

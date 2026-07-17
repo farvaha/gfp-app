@@ -13,6 +13,13 @@ const USER_KEY = 'gfp_me';
 type AuthState = {
   ready: boolean;
   user: Me | null;
+  // Native email + password sign-in. Establishes the cookie session in the
+  // shared native jar and returns the signed-in user (throws on failure).
+  login: (email: string, password: string) => Promise<Me>;
+  // Native account creation, then sign-in.
+  register: (payload: { email: string; password: string; name?: string }) => Promise<Me>;
+  // Trigger a password-reset email.
+  forgot: (email: string) => Promise<void>;
   // Called by the WebView layer once a login/signup completes and a nonce is captured.
   onWebAuth: (nonce: string | null) => Promise<void>;
   // Re-validate the current cookie session; returns the user or null.
@@ -23,6 +30,9 @@ type AuthState = {
 const Ctx = createContext<AuthState>({
   ready: false,
   user: null,
+  login: async () => { throw new Error('not ready'); },
+  register: async () => { throw new Error('not ready'); },
+  forgot: async () => {},
   onWebAuth: async () => {},
   refresh: async () => null,
   logout: async () => {},
@@ -58,6 +68,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await persist(null);
   }, [persist]);
 
+  const login = useCallback(async (email: string, password: string): Promise<Me> => {
+    // POST /auth/login sets the session cookie in the shared native jar and
+    // returns the user (and, on most WP setups, a fresh nonce header).
+    const res = await Api.login(email.trim(), password);
+    // Prefer the user object the login response returns; otherwise confirm via /me.
+    const me: Me | null =
+      (res && res.user) ? res.user :
+      (res && res.id && res.email) ? res :
+      await Api.me();
+    if (!me || !me.id) throw new Error('Sign-in did not return an account.');
+    await persist(me);
+    return me;
+  }, [persist]);
+
+  const register = useCallback(
+    async (payload: { email: string; password: string; name?: string }): Promise<Me> => {
+      const res = await Api.register({
+        email: payload.email.trim(),
+        password: payload.password,
+        name: payload.name?.trim(),
+      });
+      // If register logs the user straight in, a session cookie is now set.
+      let me: Me | null =
+        (res && res.user) ? res.user :
+        (res && res.id && res.email) ? res : null;
+      if (!me) {
+        // Otherwise establish the session explicitly with the same credentials.
+        me = await login(payload.email, payload.password);
+      } else {
+        await persist(me);
+      }
+      return me;
+    },
+    [login, persist]
+  );
+
+  const forgot = useCallback(async (email: string) => {
+    await Api.forgot(email.trim());
+  }, []);
+
   const onWebAuth = useCallback(async (n: string | null) => {
     if (n) await setNonce(n);
     // Cookie is already in the shared jar via the WebView; confirm the session.
@@ -78,8 +128,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [persist, refresh]);
 
   const value = useMemo(
-    () => ({ ready, user, onWebAuth, refresh, logout }),
-    [ready, user, onWebAuth, refresh, logout]
+    () => ({ ready, user, login, register, forgot, onWebAuth, refresh, logout }),
+    [ready, user, login, register, forgot, onWebAuth, refresh, logout]
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
