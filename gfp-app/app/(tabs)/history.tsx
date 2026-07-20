@@ -39,6 +39,9 @@ export default function HistoryScreen() {
   }, [active]);
 
   const analysis = day?.analysis;
+  // Server sends meals/workouts as {count, totals, items} objects; older builds assumed arrays and crashed. Accept both.
+  const meals: any[] = Array.isArray(day?.meals) ? day.meals : Array.isArray(day?.meals?.items) ? day.meals.items : [];
+  const workouts: any[] = Array.isArray(day?.workouts) ? day.workouts : Array.isArray(day?.workouts?.items) ? day.workouts.items : [];
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
@@ -70,22 +73,22 @@ export default function HistoryScreen() {
             <Muted>Nothing logged for this day.</Muted>
           ) : (
             <>
-              <Text style={st.sub}>Meals ({day.meals?.length ?? 0})</Text>
-              {(day.meals ?? []).length === 0 ? (
+              <Text style={st.sub}>Meals ({meals?.length ?? 0})</Text>
+              {(meals ?? []).length === 0 ? (
                 <Muted>No meals logged.</Muted>
               ) : (
-                day.meals.map((m: any, i: number) => (
+                meals.map((m: any, i: number) => (
                   <Text key={i} style={st.line}>
                     • {m.raw_text || m.meal_slot || 'Meal'} — {Math.round(Number(m.est_kcal ?? m.kcal) || 0)} kcal, {Math.round(Number(m.est_protein_g ?? m.protein_g ?? m.protein) || 0)}g protein
                   </Text>
                 ))
               )}
 
-              <Text style={st.sub}>Workouts ({day.workouts?.length ?? 0})</Text>
-              {(day.workouts ?? []).length === 0 ? (
+              <Text style={st.sub}>Workouts ({workouts?.length ?? 0})</Text>
+              {(workouts ?? []).length === 0 ? (
                 <Muted>No workout logged.</Muted>
               ) : (
-                day.workouts.map((w: any, i: number) => (
+                workouts.map((w: any, i: number) => (
                   <Text key={i} style={st.line}>
                     • {w.title || w.day || (w.day_index ? `Day ${w.day_index}` : 'Workout')} — {w.status || 'logged'}
                   </Text>
