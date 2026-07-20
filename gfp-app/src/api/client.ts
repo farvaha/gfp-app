@@ -63,6 +63,7 @@ export async function api<T = any>(path: string, opts: Opts = {}): Promise<T> {
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
+        'X-GFP-App': '1', // native app marker — see mu-plugin gfp-app-cookie-auth.php
         ...(nonce ? { 'X-WP-Nonce': nonce } : {}),
       },
       // include cookies from the shared native jar
