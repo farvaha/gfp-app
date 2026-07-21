@@ -64,7 +64,7 @@ export default function Preiva() {
   };
 
   return (
-    <SafeAreaView style={s.safe} edges={['top']}>
+    <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
       <View style={s.backBar}>
         <Ionicons name="chevron-back" size={22} color={C.ink} onPress={() => router.back()} />
         <Text style={s.backTitle}>Preiva</Text>
