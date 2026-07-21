@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { Card, H2, Muted, Btn, Chip } from '../../components/ui';
-import { AppHeader } from '../../components/AppHeader';
+import { AppHeader } from '../../components/AppHeader'; import { formatCoach } from '../../src/lib/coachText'; import { FullPlanCard, NearbyPlaces } from '../../components/HistoryExtras';
 import { useCached } from '../../src/hooks/useCached';
 import { Api } from '../../src/api/client';
 import { EP } from '../../src/api/endpoints';
@@ -113,14 +113,14 @@ export default function HistoryScreen() {
           <H2>End-of-day analysis</H2>
           {analysis ? (
             <Text style={st.analysis}>
-              {typeof analysis === 'string' ? analysis : analysis.text || JSON.stringify(analysis)}
+              {formatCoach(analysis)}
             </Text>
           ) : (
             <Muted>Log your day and your analysis appears here.</Muted>
           )}
         </Card>
 
-        <NearbyFitness />
+        <FullPlanCard /><NearbyPlaces />
         <NotificationPrefs />
 
         <View style={{ height: 24 }} />
