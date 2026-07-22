@@ -21,7 +21,7 @@ export default function HistoryScreen() {
     ? rawDates
         .map((x: any) => (typeof x === 'string' ? x : x?.date ?? x?.d ?? x?.log_date ?? ''))
         .filter((x: any): x is string => typeof x === 'string' && x.length > 0)
-    : [];
+    
   const active =
     picked ?? (typeof dates.data?.today === 'string' ? dates.data.today : list[0]) ?? null;
 
@@ -40,8 +40,8 @@ export default function HistoryScreen() {
 
   const analysis = day?.analysis;
   // Server sends meals/workouts as {count, totals, items} objects; older builds assumed arrays and crashed. Accept both.
-  const meals: any[] = Array.isArray(day?.meals) ? day.meals : Array.isArray(day?.meals?.items) ? day.meals.items : [];
-  const workouts: any[] = Array.isArray(day?.workouts) ? day.workouts : Array.isArray(day?.workouts?.items) ? day.workouts.items : [];
+  const meals: any[] = Array.isArray(day?.meals) ? day.meals : Array.isArray(day?.meals?.items) ? day.meals.items 
+  const workouts: any[] = Array.isArray(day?.workouts) ? day.workouts : Array.isArray(day?.workouts?.items) ? day.workouts.items 
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
