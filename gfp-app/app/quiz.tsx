@@ -16,7 +16,7 @@ import { Card, H2, Muted, Btn, Chip } from '../components/ui';
 import { Api } from '../src/api/client';
 import { computeTargetKcal } from '../src/lib/builder';
 import { macroTargets } from '../src/lib/macros';
-import { buildSplit, mealsFor, perMeal } from '../src/lib/splits';
+import { buildCaliSplit, buildSplit, mealsFor, perMeal } from '../src/lib/splits';
 import { C, F, R } from '../constants/gfp';
 
 // Native Build My Plan - mirrors the website builder: protocol (including
@@ -94,7 +94,10 @@ export default function Quiz() {
 
   const kcal = useMemo(() => computeTargetKcal(bs as any), [bs]);
   const macros = useMemo(() => macroTargets(kcal, bs as any), [kcal, bs]);
-  const split = useMemo(() => buildSplit(splitStyle, Number(days) || 3, goal), [splitStyle, days, goal]);
+  const split = useMemo(
+    () => (protocol === 'calisthenics' ? buildCaliSplit(Number(days) || 3, caliFocus) : buildSplit(splitStyle, Number(days) || 3, goal)),
+    [protocol, caliFocus, splitStyle, days, goal]
+  );
   const meals = useMemo(() => mealsFor(goal, kcal), [goal, kcal]);
 
   async function save() {
@@ -218,6 +221,10 @@ export default function Quiz() {
               <H2>Training</H2>
               <Text style={s.sub}>Days per week</Text>
               <Opts value={days} onChange={setDays} options={[['3', '3'], ['4', '4'], ['5', '5'], ['6', '6']]} />
+              {protocol === 'calisthenics' ? (
+                <Muted>Calisthenics track: your days are built from skills, push, pull and legs bodyweight work - no gym split needed.</Muted>
+              ) : (
+                <>
               <Text style={s.sub}>Split style</Text>
               <Opts
                 value={splitStyle}
@@ -231,6 +238,11 @@ export default function Quiz() {
               />
               <Text style={s.sub}>Equipment</Text>
               <Opts value={equip} onChange={setEquip} options={[['gym', 'Gym'], ['home', 'Home'], ['bodyweight', 'Bodyweight']]} />
+                </>
+              )}
+              {protocol === 'comp' && (
+                <Muted>Competition prep: higher protein and tighter set schemes are applied automatically.</Muted>
+              )}
             </Card>
           )}
 
