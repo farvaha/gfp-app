@@ -1,15 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Btn, Muted } from './ui';
 import { C, F, R } from '../constants/gfp';
 
 const SLOTS = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 
-/**
- * Native "log a meal in words" sheet. Mirrors the website's text logger:
- * you describe the meal, pick a slot, and the server (Preiva) estimates the
- * macros from the text. No WebView, no leaving the app.
- */
+// Native 'log a meal in words' sheet. The sheet is wrapped in a
+// KeyboardAvoidingView and pushed up by the keyboard height, so the text you
+// are typing is always visible above the keyboard instead of hidden behind it.
 export function ManualMealSheet({
   visible,
   saving,
@@ -21,6 +30,7 @@ export function ManualMealSheet({
   onCancel: () => void;
   onSave: (v: { raw_text: string; meal_slot: string }) => void;
 }) {
+  const insets = useSafeAreaInsets();
   const [text, setText] = useState('');
   const [slot, setSlot] = useState('Lunch');
 
@@ -35,21 +45,20 @@ export function ManualMealSheet({
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onCancel}>
-      <View style={s.backdrop}>
-        <View style={s.sheet}>
+      <KeyboardAvoidingView
+        style={s.backdrop}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={[s.sheet, { paddingBottom: 18 + insets.bottom }]}>
           <ScrollView keyboardShouldPersistTaps="handled">
             <Text style={s.title}>Log a meal</Text>
-            <Muted>Describe what you ate — Preiva estimates the calories and macros.</Muted>
+            <Muted>Describe what you ate - Preiva estimates the calories and macros.</Muted>
 
             <View style={s.slotRow}>
               {SLOTS.map((x) => (
-                <Text
-                  key={x}
-                  onPress={() => setSlot(x)}
-                  style={[s.slot, slot === x && s.slotOn]}
-                >
-                  {x}
-                </Text>
+                <Pressable key={x} onPress={() => setSlot(x)} style={[s.slot, slot === x && s.slotOn]}>
+                  <Text style={[s.slotTxt, slot === x && s.slotTxtOn]}>{x}</Text>
+                </Pressable>
               ))}
             </View>
 
@@ -64,7 +73,7 @@ export function ManualMealSheet({
             />
 
             <Btn
-              label={saving ? 'Saving…' : 'Save meal'}
+              label={saving ? 'Saving...' : 'Save meal'}
               loading={saving}
               disabled={!canSave}
               onPress={() => onSave({ raw_text: text.trim(), meal_slot: slot.toLowerCase() })}
@@ -73,7 +82,7 @@ export function ManualMealSheet({
             <Btn label="Cancel" kind="ghost" onPress={onCancel} style={{ marginTop: 8 }} />
           </ScrollView>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -92,17 +101,15 @@ const s = StyleSheet.create({
   title: { color: C.ink, fontFamily: F.heading, fontSize: 18, marginBottom: 4 },
   slotRow: { flexDirection: 'row', gap: 8, marginTop: 14, marginBottom: 6, flexWrap: 'wrap' },
   slot: {
-    color: C.muted,
-    fontFamily: F.bodyMed,
-    fontSize: 12,
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: R.pill,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: C.line,
-    overflow: 'hidden',
   },
-  slotOn: { color: '#fff', backgroundColor: C.orange, borderColor: C.orange },
+  slotTxt: { color: C.muted, fontFamily: F.bodyMed, fontSize: 12 },
+  slotOn: { backgroundColor: C.orange, borderColor: C.orange },
+  slotTxtOn: { color: '#fff' },
   input: {
     color: C.ink,
     fontFamily: F.bodyMed,
