@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Card, H2, Muted, Btn, Chip } from '../../components/ui';
 import { AppHeader } from '../../components/AppHeader';
 import { useCached } from '../../src/hooks/useCached';
@@ -161,6 +161,7 @@ export default function TrainScreen() {
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <AppHeader title="Train" subtitle={day?.name} />
 
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView
         contentContainerStyle={st.body}
         refreshControl={
@@ -286,6 +287,7 @@ export default function TrainScreen() {
 
         <View style={{ height: 24 }} />
       </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }
