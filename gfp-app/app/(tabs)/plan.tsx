@@ -3,6 +3,7 @@ import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native
 import { useRouter } from 'expo-router';
 import { Card, H2, Muted, Btn, Chip } from '../../components/ui';
 import { PlanBody } from '../../components/PlanBody';
+import { PlanDetail } from '../../components/PlanDetail';
 import { AppHeader } from '../../components/AppHeader';
 import { useCached } from '../../src/hooks/useCached';
 import { EP } from '../../src/api/endpoints';
@@ -17,6 +18,9 @@ export default function PlanScreen() {
   const [showFull, setShowFull] = useState(false);
   const planText: string =
     (plan.data && (plan.data.plan ?? plan.data.html ?? plan.data.text)) || '';
+  // The server's /plan text is often just a tier label; only surface the
+  // 'full plan' card when it carries real content worth reading.
+  const hasRichPlanText = planText.trim().length > 40;
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
@@ -53,34 +57,27 @@ export default function PlanScreen() {
           )}
 
           <Btn
-            label={c ? 'Update my plan' : 'Build my plan — free'}
+            label={c ? 'Update my plan' : 'Build my plan - free'}
             onPress={() => router.push('/quiz')}
             style={{ marginTop: 16 }}
           />
-          {!!c && (
-            <Btn
-              label={showFull ? 'Hide full plan' : 'View full plan'}
-              kind="ghost"
-              onPress={() => setShowFull((v) => !v)}
-              style={{ marginTop: 8 }}
-            />
-          )}
         </Card>
 
-        {showFull && (
+        {/* Full protocol detail - macros, split, nutrition - drawn natively. */}
+        {!!c && <PlanDetail protocol={prot.data} />}
+
+        {/* Server-rendered plan document, only when it has real content. */}
+        {!!c && hasRichPlanText && (
           <Card>
-            <H2>Full plan</H2>
-            {plan.refreshing && !planText ? (
-              <Muted>Loading your plan…</Muted>
-            ) : planText ? (
-              <PlanBody text={planText} />
-            ) : (
-              <Muted>
-                {plan.error
-                  ? 'Could not load your full plan. Pull to refresh to try again.'
-                  : 'Your full plan will appear here once it’s built.'}
-              </Muted>
-            )}
+            <View style={st.rowBetween}>
+              <H2>Full plan notes</H2>
+              <Btn
+                label={showFull ? 'Hide' : 'Show'}
+                kind="ghost"
+                onPress={() => setShowFull((v) => !v)}
+              />
+            </View>
+            {showFull && <PlanBody text={planText} />}
           </Card>
         )}
 
@@ -95,4 +92,5 @@ const st = StyleSheet.create({
   kcal: { color: C.orange, fontFamily: F.headingX, fontSize: 34, marginTop: 8 },
   unit: { color: C.muted, fontFamily: F.heading, fontSize: 15 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
+  rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 });
