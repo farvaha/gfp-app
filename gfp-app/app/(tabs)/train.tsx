@@ -126,8 +126,14 @@ export default function TrainScreen() {
         kg: r.kg ? Number(r.kg) : null,
         done: r.done,
       }));
+      // Roll up totals so server-side analysis (volume, top weight) matches
+      // what was actually logged - this is what History and the daily analysis read.
+      const total_sets = rows.filter((r) => r.done).length;
+      const top_weight_kg = rows.reduce((m, r) => Math.max(m, Number(r.kg) || 0), 0);
+      const main_lift = rows[0] ? rows[0].ex : undefined;
+      const extras = { total_sets, top_weight_kg, main_lift };
       if (loggedId) {
-        await Api.patchWorkout(loggedId, { sets, status });
+        await Api.patchWorkout(loggedId, { sets, status, ...extras });
       } else {
         // The server's POST /workouts only creates the row (it ignores `sets`
         // and `status` and always inserts an empty in_progress workout), so
@@ -138,7 +144,7 @@ export default function TrainScreen() {
           protocol_id: prot.data?.id,
         });
         if (created?.id) {
-          await Api.patchWorkout(Number(created.id), { sets, status });
+          await Api.patchWorkout(Number(created.id), { sets, status, ...extras });
         }
       }
       await wk.refresh();
@@ -295,21 +301,29 @@ function SportSession() {
   const [type, setType] = useState('');
   const [dur, setDur] = useState('');
   const [rpe, setRpe] = useState('');
+  const [dist, setDist] = useState('');
   const [busy, setBusy] = useState(false);
+
+  // Endurance sports log distance; everything else logs a session type -
+  // the inputs change with the sport, like the website.
+  const endurance = ['Running', 'Cycling', 'Swimming'].indexOf(sport) >= 0;
+  const mindful = sport === 'Yoga';
 
   async function log() {
     setBusy(true);
     try {
       await Api.logSession({
         sport: sport || undefined,
-        session_type: type || undefined,
+        session_type: mindful ? (type || 'practice') : type || undefined,
         duration_min: dur ? Number(dur) : undefined,
         intensity_rpe: rpe ? Number(rpe) : undefined,
+        metrics: endurance && dist ? { distance_km: Number(dist) } : undefined,
       });
       setSport('');
       setType('');
       setDur('');
       setRpe('');
+      setDist('');
       Alert.alert('Session logged');
     } catch (e: any) {
       Alert.alert('Could not log session', e?.message || '');
@@ -332,15 +346,31 @@ function SportSession() {
           </Text>
         ))}
       </ScrollView>
-      <View style={st.pair}>
-        <TextInput value={sport} onChangeText={setSport} placeholder="Sport (e.g. soccer)" placeholderTextColor={C.muted} style={[st.input, st.flex]} />
-        <TextInput value={type} onChangeText={setType} placeholder="Type (e.g. practice)" placeholderTextColor={C.muted} style={[st.input, st.flex]} />
-      </View>
-      <View style={st.pair}>
-        <TextInput value={dur} onChangeText={setDur} placeholder="Minutes" placeholderTextColor={C.muted} keyboardType="number-pad" style={[st.input, st.flex]} />
-        <TextInput value={rpe} onChangeText={setRpe} placeholder="RPE 1–10" placeholderTextColor={C.muted} keyboardType="number-pad" style={[st.input, st.flex]} />
-      </View>
-      <Btn label={busy ? 'Logging…' : 'Log session'} onPress={log} loading={busy} style={{ marginTop: 10 }} />
+      {!sport && <Muted>Pick a sport to log a session.</Muted>}
+      {!!sport && (
+        <>
+          {endurance ? (
+            <View style={st.pair}>
+              <TextInput value={dist} onChangeText={setDist} placeholder="Distance (km)" placeholderTextColor={C.muted} keyboardType="numeric" style={[st.input, st.flex]} />
+              <TextInput value={dur} onChangeText={setDur} placeholder="Minutes" placeholderTextColor={C.muted} keyboardType="number-pad" style={[st.input, st.flex]} />
+            </View>
+          ) : mindful ? (
+            <View style={st.pair}>
+              <TextInput value={type} onChangeText={setType} placeholder="Style (e.g. hatha)" placeholderTextColor={C.muted} style={[st.input, st.flex]} />
+              <TextInput value={dur} onChangeText={setDur} placeholder="Minutes" placeholderTextColor={C.muted} keyboardType="number-pad" style={[st.input, st.flex]} />
+            </View>
+          ) : (
+            <View style={st.pair}>
+              <TextInput value={type} onChangeText={setType} placeholder="Practice or match" placeholderTextColor={C.muted} style={[st.input, st.flex]} />
+              <TextInput value={dur} onChangeText={setDur} placeholder="Minutes" placeholderTextColor={C.muted} keyboardType="number-pad" style={[st.input, st.flex]} />
+            </View>
+          )}
+          <View style={st.pair}>
+            <TextInput value={rpe} onChangeText={setRpe} placeholder="Effort RPE 1-10" placeholderTextColor={C.muted} keyboardType="number-pad" style={[st.input, st.flex]} />
+          </View>
+          <Btn label={busy ? 'Logging...' : 'Log session'} onPress={log} loading={busy} style={{ marginTop: 10 }} />
+        </>
+      )}
     </Card>
   );
 }
