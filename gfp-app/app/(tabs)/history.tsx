@@ -21,7 +21,7 @@ export default function HistoryScreen() {
     ? rawDates
         .map((x: any) => (typeof x === 'string' ? x : x?.date ?? x?.d ?? x?.log_date ?? ''))
         .filter((x: any): x is string => typeof x === 'string' && x.length > 0)
-    
+    : []; const now = new Date(); const today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0'); if (!list.includes(today)) list.unshift(today);
   const active =
     picked ?? (typeof dates.data?.today === 'string' ? dates.data.today : list[0]) ?? null;
 
