@@ -1,5 +1,5 @@
-import React from 'react';
-import { Linking, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Image, Linking, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Card, H2, Muted, Btn } from '../../components/ui';
 import { AppHeader } from '../../components/AppHeader';
 import { useCached } from '../../src/hooks/useCached';
@@ -144,22 +144,7 @@ export default function AccountScreen() {
           )}
         </Card>
 
-        <Card>
-          <H2>Supplements and orders</H2>
-          <Muted>Your shop and order history open in your browser.</Muted>
-          <Btn
-            label="Shop supplements"
-            kind="ghost"
-            onPress={() => openExternal(WEB.shop)}
-            style={{ marginTop: 12 }}
-          />
-          <Btn
-            label="My orders"
-            kind="ghost"
-            onPress={() => openExternal(WEB.orders)}
-            style={{ marginTop: 8 }}
-          />
-        </Card>
+        <ShopCard openExternal={openExternal} />
 
         <Card>
           <H2>Session</H2>
@@ -172,7 +157,61 @@ export default function AccountScreen() {
   );
 }
 
+// Native supplement shop - products come straight from the store API on the
+// site (wc/store/v1), drawn natively. Only the final checkout opens outside
+// the app, because payment cannot run natively without a payment SDK.
+function ShopCard({ openExternal }: { openExternal: (u?: string | null) => void }) {
+  const [items, setItems] = useState<any[] | null>(null);
+
+  useEffect(() => {
+    fetch('https://getfitplans.com/wp-json/wc/store/v1/products?per_page=10')
+      .then((r) => r.json())
+      .then((r) => setItems(Array.isArray(r) ? r : []))
+      .catch(() => setItems([]));
+  }, []);
+
+  return (
+    <Card>
+      <H2>Supplements</H2>
+      {!items && <Muted>Loading the shop...</Muted>}
+      {!!items && items.length === 0 && <Muted>The shop is empty right now.</Muted>}
+      {(items ?? []).map((p: any) => (
+        <View key={p.id} style={st.prodRow}>
+          {!!p.images?.[0]?.thumbnail && (
+            <Image source={{ uri: p.images[0].thumbnail }} style={st.prodImg} />
+          )}
+          <View style={{ flex: 1 }}>
+            <Text style={st.prodName} numberOfLines={2}>{p.name}</Text>
+            {!!p.prices && (
+              <Text style={st.prodPrice}>
+                {p.prices.currency_symbol}
+                {(Number(p.prices.price) / Math.pow(10, p.prices.currency_minor_unit || 0)).toFixed(0)}
+              </Text>
+            )}
+          </View>
+          <Btn label="Buy" kind="mint" onPress={() => openExternal(p.permalink)} />
+        </View>
+      ))}
+      <Text style={st.shopHint}>Checkout completes securely in your browser.</Text>
+      <Btn label="My orders" kind="ghost" onPress={() => openExternal(WEB.orders)} style={{ marginTop: 8 }} />
+    </Card>
+  );
+}
+
 const st = StyleSheet.create({
+  prodRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: C.line,
+  },
+  prodImg: { width: 44, height: 44, borderRadius: 8, backgroundColor: C.card2 },
+  prodName: { color: C.ink, fontFamily: F.bodySemi, fontSize: 13 },
+  prodPrice: { color: C.mint, fontFamily: F.bodyMed, fontSize: 12, marginTop: 2 },
+  shopHint: { color: C.muted, fontFamily: F.body, fontSize: 11, marginTop: 10 },
+
   body: { padding: 14, gap: 12 },
   rowBetween: {
     flexDirection: 'row',
