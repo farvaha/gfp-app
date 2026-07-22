@@ -36,6 +36,10 @@ export default function TrainScreen() {
   const [dayIdx, setDayIdx] = useState(0);
   const [rows, setRows] = useState<SetRow[]>([]);
   const [busy, setBusy] = useState(false);
+  const [cxName, setCxName] = useState('');
+  const [cxSets, setCxSets] = useState('3');
+  const [cxReps, setCxReps] = useState('');
+  const [cxKg, setCxKg] = useState('');
 
   // the workout already logged today, if any (PATCH target)
   const logged = wk.data?.workouts?.[0] ?? wk.data?.active ?? null;
@@ -92,6 +96,21 @@ export default function TrainScreen() {
       copy.splice(afterIdx + 1, 0, { ex, reps: prev[afterIdx]?.reps ?? '', kg: prev[afterIdx]?.kg ?? '', done: false });
       return copy;
     });
+  }
+
+  function addCustomExercise() {
+    const name = cxName.trim();
+    if (!name) return;
+    const n = Math.min(12, Math.max(1, parseInt(cxSets, 10) || 1));
+    setRows((prev) => {
+      const extra: SetRow[] = [];
+      for (let i = 0; i < n; i++) extra.push({ ex: name, reps: cxReps.trim(), kg: cxKg.trim(), done: false });
+      return [...prev, ...extra];
+    });
+    setCxName('');
+    setCxReps('');
+    setCxKg('');
+    setCxSets('3');
   }
 
   function removeSet(i: number) {
@@ -223,6 +242,17 @@ export default function TrainScreen() {
                 </View>
               ))}
 
+              <View style={st.customBox}>
+                <Text style={st.customTitle}>Add another exercise</Text>
+                <TextInput value={cxName} onChangeText={setCxName} placeholder="Exercise name" placeholderTextColor={C.muted} style={[st.input, st.flex]} />
+                <View style={st.pair}>
+                  <TextInput value={cxSets} onChangeText={setCxSets} placeholder="sets" keyboardType="number-pad" placeholderTextColor={C.muted} style={[st.input, st.flex]} />
+                  <TextInput value={cxReps} onChangeText={setCxReps} placeholder="reps" placeholderTextColor={C.muted} style={[st.input, st.flex]} />
+                  <TextInput value={cxKg} onChangeText={setCxKg} placeholder="kg" keyboardType="numeric" placeholderTextColor={C.muted} style={[st.input, st.flex]} />
+                </View>
+                <Btn label="+ Add exercise" kind="ghost" onPress={addCustomExercise} style={{ marginTop: 8 }} />
+              </View>
+
               <Btn
                 label={busy ? 'Saving…' : loggedId ? 'Update workout' : 'Save workout'}
                 onPress={() => save('in_progress')}
@@ -253,6 +283,11 @@ export default function TrainScreen() {
     </View>
   );
 }
+
+const SPORTS = [
+  'Football', 'Basketball', 'Running', 'Cycling', 'Swimming',
+  'Tennis', 'Cricket', 'Badminton', 'Boxing', 'Yoga',
+];
 
 /** Sport session — POST /sessions */
 function SportSession() {
@@ -286,6 +321,17 @@ function SportSession() {
   return (
     <Card>
       <H2>Sport session</H2>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.sportRow}>
+        {SPORTS.map((sp) => (
+          <Text
+            key={sp}
+            onPress={() => setSport(sp)}
+            style={[st.sportChip, sport === sp && st.sportChipOn]}
+          >
+            {sp}
+          </Text>
+        ))}
+      </ScrollView>
       <View style={st.pair}>
         <TextInput value={sport} onChangeText={setSport} placeholder="Sport (e.g. soccer)" placeholderTextColor={C.muted} style={[st.input, st.flex]} />
         <TextInput value={type} onChangeText={setType} placeholder="Type (e.g. practice)" placeholderTextColor={C.muted} style={[st.input, st.flex]} />
@@ -385,4 +431,9 @@ const st = StyleSheet.create({
   x: { color: C.muted, fontFamily: F.body, fontSize: 12 },
   del: { color: C.danger, fontSize: 13, paddingHorizontal: 6 },
   addSet: { color: C.orange, fontFamily: F.bodySemi, fontSize: 12, marginTop: 4 },
+  customBox: { marginTop: 14, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.line, paddingTop: 12, gap: 8 },
+  customTitle: { color: C.ink, fontFamily: F.bodySemi, fontSize: 13 },
+  sportRow: { gap: 8, paddingVertical: 8 },
+  sportChip: { color: C.muted, fontFamily: F.bodyMed, fontSize: 12, paddingHorizontal: 12, paddingVertical: 7, borderRadius: R.pill, backgroundColor: C.card2, borderWidth: StyleSheet.hairlineWidth, borderColor: C.line, overflow: 'hidden' },
+  sportChipOn: { color: '#fff', backgroundColor: C.orange, borderColor: C.orange },
 });
