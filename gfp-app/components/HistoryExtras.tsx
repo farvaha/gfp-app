@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import * as Location from 'expo-location';
 import { Card, H2, Muted, Btn } from './ui';
@@ -100,6 +100,56 @@ export function NearbyPlaces() {
   );
 }
 
+export function WorkoutDetail({ date }: { date?: string | null }) {
+  const [sets, setSets] = useState<any[] | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!date) return;
+    let alive = true;
+    setLoading(true);
+    Api.workouts(date)
+      .then((r: any) => {
+        if (!alive) return;
+        const w = (Array.isArray(r?.workouts) && r.workouts[0]) || r?.active || null;
+        setSets(Array.isArray(w?.sets) ? w.sets : []);
+      })
+      .catch(() => alive && setSets([]))
+      .finally(() => alive && setLoading(false));
+    return () => {
+      alive = false;
+    };
+  }, [date]);
+
+  const groups: { ex: string; rows: any[] }[] = [];
+  (sets || []).forEach((r: any) => {
+    const ex = String(r.ex || r.n || r.name || "Exercise");
+    const last = groups[groups.length - 1];
+    if (last && last.ex === ex) last.rows.push(r);
+    else groups.push({ ex, rows: [r] });
+  });
+
+  if (!date) return null;
+
+  return (
+    <Card>
+      <H2>Exercises this day</H2>
+      {loading && !sets && <Muted>Loading...</Muted>}
+      {!!sets && groups.length === 0 && <Muted>No exercises logged this day.</Muted>}
+      {groups.map((g, i) => (
+        <View key={i} style={s.exBlock}>
+          <Text style={s.exName}>{g.ex}</Text>
+          {g.rows.map((r: any, j: number) => (
+            <Text key={j} style={s.setLine}>
+              {"Set " + (j + 1) + ": " + (r.reps ? String(r.reps) : "-") + " reps" + (r.kg != null && r.kg !== "" ? "  x  " + String(r.kg) + " kg" : "")}
+            </Text>
+          ))}
+        </View>
+      ))}
+    </Card>
+  );
+}
+
 const s = StyleSheet.create({
   row: { flexDirection: 'row', gap: 8, marginTop: 12, marginBottom: 6 },
   item: {
@@ -108,5 +158,8 @@ const s = StyleSheet.create({
     borderTopColor: C.line,
   },
   name: { color: C.ink, fontFamily: F.bodySemi, fontSize: 13 },
+  exBlock: { marginTop: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.line, paddingTop: 8 },
+  exName: { color: C.ink, fontFamily: F.bodySemi, fontSize: 13, marginBottom: 4 },
+  setLine: { color: C.muted, fontFamily: F.body, fontSize: 12, lineHeight: 19 },
   meta: { color: C.muted, fontFamily: F.body, fontSize: 11, marginTop: 2 },
 });
