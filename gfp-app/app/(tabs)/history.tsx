@@ -40,8 +40,8 @@ export default function HistoryScreen() {
 
   const analysis = day?.analysis;
   // Server sends meals/workouts as {count, totals, items} objects; older builds assumed arrays and crashed. Accept both.
-  const meals: any[] = Array.isArray(day?.meals) ? day.meals : Array.isArray(day?.meals?.items) ? day.meals.items 
-  const workouts: any[] = Array.isArray(day?.workouts) ? day.workouts : Array.isArray(day?.workouts?.items) ? day.workouts.items 
+  const meals: any[] = Array.isArray(day?.meals) ? day.meals : Array.isArray(day?.meals?.items) ? day.meals.items : [];
+  const workouts: any[] = Array.isArray(day?.workouts) ? day.workouts : Array.isArray(day?.workouts?.items) ? day.workouts.items : [];
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
