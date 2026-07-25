@@ -5,8 +5,8 @@
 export interface Ex { n: string; s: string }
 export interface SplitDay { name: string; ex: Ex[] }
 
-const S = (goal: string) => (goal === 'lose' ? '3 Ã 10â12' : '4 Ã 6â8');
-const ACC = '3 Ã 12â15';
+const S = (goal: string) => (goal === 'lose' ? '3 x 10-12' : '4 x 6-8');
+const ACC = '3 x 12-15';
 
 function d(name: string, goal: string, mains: string[], accs: string[]): SplitDay {
   return {
@@ -62,30 +62,30 @@ export function perMeal(kcal: number, meals: number): number {
 
 // Calisthenics protocol days - bodyweight work, branched by focus.
 export function buildCaliSplit(days: number, focus: string): SplitDay[] {
-  const sch = '4 × 6–10';
+  const sch = '4 x 6-10';
   const skills: SplitDay = { name: 'Skills', ex: [
     { n: 'Handstand practice', s: '10 min' },
-    { n: 'Tuck planche hold', s: '5 × 10s' },
-    { n: 'Front lever tuck hold', s: '5 × 10s' },
-    { n: 'Skin the cat', s: '3 × 5' },
+    { n: 'Tuck planche hold', s: '5 x 10s' },
+    { n: 'Front lever tuck hold', s: '5 x 10s' },
+    { n: 'Skin the cat', s: '3 x 5' },
   ] };
   const push: SplitDay = { name: 'Push', ex: [
     { n: 'Pseudo planche push-up', s: sch },
     { n: 'Dips', s: sch },
     { n: 'Pike push-up', s: sch },
-    { n: 'Diamond push-up', s: '3 × 12–15' },
+    { n: 'Diamond push-up', s: '3 x 12-15' },
   ] };
   const pull: SplitDay = { name: 'Pull', ex: [
     { n: 'Pull-up', s: sch },
     { n: 'Chin-up', s: sch },
-    { n: 'Australian row', s: '3 × 12–15' },
-    { n: 'Hanging leg raise', s: '3 × 12–15' },
+    { n: 'Australian row', s: '3 x 12-15' },
+    { n: 'Hanging leg raise', s: '3 x 12-15' },
   ] };
   const legs: SplitDay = { name: 'Legs + core', ex: [
     { n: 'Pistol squat progression', s: sch },
-    { n: 'Nordic curl progression', s: '3 × 5–8' },
-    { n: 'Standing calf raise', s: '3 × 15' },
-    { n: 'Hollow body hold', s: '4 × 30s' },
+    { n: 'Nordic curl progression', s: '3 x 5-8' },
+    { n: 'Standing calf raise', s: '3 x 15' },
+    { n: 'Hollow body hold', s: '4 x 30s' },
   ] };
   const base = focus === 'aesthetics' ? [push, pull, legs, push, pull, legs] : [skills, push, pull, legs, skills, push];
   const n = Math.min(6, Math.max(2, Math.round(days || 3)));
