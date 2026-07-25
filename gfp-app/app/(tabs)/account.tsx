@@ -133,7 +133,7 @@ export default function AccountScreen() {
                 />
               )}
 
-              <Text style={st.hint}>Payments and billing are handled securely in your browser.</Text>
+              <Text style={st.hint}>Everything here stays in the app - only card payment opens your browser, a security requirement.</Text>
               <Btn
                 label="Manage billing"
                 kind="ghost"
