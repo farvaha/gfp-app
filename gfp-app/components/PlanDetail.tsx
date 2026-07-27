@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Card, H2, Muted, Chip } from './ui';
-import { macroTargets } from '../src/lib/macros';
+import { macroTargets } from '../src/lib/macros'; import { MealPlanCard } from './MealPlanCard';
 import { C, F, R } from '../constants/gfp';
 
 // Renders the full protocol the server computed - macro targets, the complete
@@ -36,7 +36,7 @@ export function PlanDetail({ protocol }: { protocol: any }) {
         )}
       </Card>
 
-      {split.length > 0 && (
+      <MealPlanCard targets={macros} meals={Number(c.meals_count) || 4} diet={protocol && protocol.builder_state && protocol.builder_state.diet} title="Your meals" />{split.length > 0 && (
         <Card>
           <View style={s.rowBetween}>
             <H2>Training split</H2>
