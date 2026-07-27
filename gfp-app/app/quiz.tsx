@@ -16,7 +16,7 @@ import { Card, H2, Muted, Btn, Chip } from '../components/ui';
 import { Api } from '../src/api/client';
 import { computeTargetKcal } from '../src/lib/builder';
 import { macroTargets } from '../src/lib/macros';
-import { buildCaliSplit, buildSplit, mealsFor, perMeal } from '../src/lib/splits';
+import { buildCaliSplit, buildSplit, mealsFor, perMeal } from '../src/lib/splits'; import { MealPlanCard } from '../components/MealPlanCard'; import { loading, progression } from '../src/lib/training';
 import { C, F, R } from '../constants/gfp';
 
 // Native Build My Plan - mirrors the website builder: protocol (including
@@ -287,7 +287,7 @@ export default function Quiz() {
               </Card>
               <Card>
                 <H2>Meals</H2>
-                <Muted>{`${meals} meals a day, about ${perMeal(kcal, meals)} kcal each.`}</Muted>
+                <Muted>{`${meals} meals a day, about ${perMeal(kcal, meals)} kcal each.`}</Muted></Card><MealPlanCard targets={macros} meals={meals} diet={diet} title="What to eat and when" /><Card><H2>How this plan works</H2><Muted>{loading(goal, 'intermediate').focus}</Muted>{progression('intermediate').map((w, i) => (<Text key={i} style={s.exName}>{w.label}: {w.detail}</Text>))}
               </Card>
               <Card>
                 <H2>Training split</H2>
