@@ -11,6 +11,7 @@ import { useCached } from '../../src/hooks/useCached';
 import { Api } from '../../src/api/client';
 import { EP } from '../../src/api/endpoints';
 import { macroTargets } from '../../src/lib/macros';
+import { MealPlanCard } from '../../components/MealPlanCard';
 import { C, F, R } from '../../constants/gfp';
 
 export default function TodayScreen() {
@@ -163,7 +164,7 @@ export default function TodayScreen() {
           )}
         </Card>
 
-        {/* ---------------- Meals ---------------- */}
+        {targets.kcal > 0 && (<MealPlanCard targets={targets} meals={mealsTarget || 4} diet={prot.data && prot.data.builder_state && prot.data.builder_state.diet} title="What to eat today" compact />)}
         <Card>
           <View style={styles.rowBetween}>
             <H2>Meals</H2>
