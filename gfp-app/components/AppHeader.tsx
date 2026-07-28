@@ -14,7 +14,7 @@ import { useLocale } from '../src/i18n/locale';
 export function AppHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { locale, toggle, label } = useLocale();
+  const { locale, label } = useLocale();
 
   return (
     <View style={[styles.wrap, { paddingTop: insets.top + 8 }]}>
@@ -40,7 +40,7 @@ export function AppHeader({ title, subtitle }: { title: string; subtitle?: strin
       </View>
 
       <Pressable
-        onPress={toggle}
+        onPress={() => router.push('/language')}
         style={({ pressed }) => [styles.iconBtn, styles.lang, pressed && styles.pressed]}
         accessibilityLabel={`Switch language, currently ${locale}`}
         hitSlop={8}
