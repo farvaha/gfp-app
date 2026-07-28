@@ -15,6 +15,7 @@ import { Api } from '../src/api/client';
 import { useAuth } from '../src/auth/AuthContext';
 import { isAbusive } from '../src/lib/abuse';
 import { C, F, R } from '../constants/gfp';
+import { useLocale } from '../src/i18n/locale';
 
 // Suggestion box for the developer. Abusive submissions are warned once,
 // and a second attempt blocks the account - the server enforces the same
@@ -26,6 +27,7 @@ export default function FeedbackScreen() {
   const [busy, setBusy] = useState(false);
   const [warned, setWarned] = useState(false);
   const [sent, setSent] = useState(false);
+  const { t } = useLocale();
 
   async function submit() {
     const message = text.trim();
@@ -111,16 +113,16 @@ export default function FeedbackScreen() {
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <View style={st.header}>
           <Pressable onPress={() => router.back()} hitSlop={12}>
-            <Text style={st.back}>{'\u2190'} Back</Text>
+            <Text style={st.back}>{'\u2190'} {t('common.back')}</Text>
           </Pressable>
-          <Text style={st.title}>Suggest to the developer</Text>
+          <Text style={st.title}>{t('fb.title')}</Text>
           <View style={{ width: 48 }} />
         </View>
 
         <ScrollView contentContainerStyle={st.body} keyboardShouldPersistTaps="handled">
           {sent ? (
             <View style={st.thanks}>
-              <Text style={st.thanksTitle}>Thank you!</Text>
+              <Text style={st.thanksTitle}>{t('fb.thanks')}</Text>
               <Text style={st.thanksTxt}>
                 Your suggestion reached the developer. Every idea gets read.
               </Text>
@@ -130,9 +132,7 @@ export default function FeedbackScreen() {
             </View>
           ) : (
             <>
-              <Text style={st.hint}>
-                Found a bug? Want a feature? Tell us. Feedback goes straight to the developer.
-              </Text>
+              <Text style={st.hint}>{t('fb.hint')}</Text>
               <TextInput
                 value={text}
                 onChangeText={setText}
@@ -151,7 +151,7 @@ export default function FeedbackScreen() {
                 disabled={busy}
                 style={({ pressed }) => [st.send, (pressed || busy) && { opacity: 0.7 }]}
               >
-                <Text style={st.sendTxt}>{busy ? 'Sending\u2026' : 'Send feedback'}</Text>
+                <Text style={st.sendTxt}>{busy ? t('common.pleaseWait') : t('fb.send')}</Text>
               </Pressable>
             </>
           )}

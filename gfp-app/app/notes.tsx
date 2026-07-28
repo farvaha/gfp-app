@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { C, F, R } from '../constants/gfp';
+import { useLocale } from '../src/i18n/locale';
 
 const KEY = 'gfp_personal_notes_v1';
 
@@ -25,6 +26,7 @@ export default function NotesScreen() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [draft, setDraft] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
+  const { t } = useLocale();
 
   useEffect(() => {
     AsyncStorage.getItem(KEY)
@@ -87,18 +89,16 @@ export default function NotesScreen() {
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <View style={st.header}>
           <Pressable onPress={() => router.back()} hitSlop={12}>
-            <Text style={st.back}>{'\u2190'} Back</Text>
+            <Text style={st.back}>{'\u2190'} {t('common.back')}</Text>
           </Pressable>
-          <Text style={st.title}>Personal notes</Text>
+          <Text style={st.title}>{t('notes.title')}</Text>
           <View style={{ width: 48 }} />
         </View>
 
         <ScrollView contentContainerStyle={st.body} keyboardShouldPersistTaps="handled">
-          <Text style={st.hint}>
-            Private to this device. Jot anything - reminders, PRs, meal ideas, how today felt.
-          </Text>
+          <Text style={st.hint}>{t('notes.hint')}</Text>
           {notes.length === 0 && (
-            <Text style={st.empty}>No notes yet. Write your first one below.</Text>
+            <Text style={st.empty}>{t('notes.empty')}</Text>
           )}
           {notes.map((n) => (
             <View key={n.id} style={st.note}>
@@ -107,10 +107,10 @@ export default function NotesScreen() {
                 <Text style={st.noteMeta}>{when(n.updated)}</Text>
                 <View style={{ flexDirection: 'row', gap: 16 }}>
                   <Pressable onPress={() => startEdit(n)} hitSlop={8}>
-                    <Text style={st.noteBtn}>Edit</Text>
+                    <Text style={st.noteBtn}>{t('common.edit')}</Text>
                   </Pressable>
                   <Pressable onPress={() => remove(n.id)} hitSlop={8}>
-                    <Text style={[st.noteBtn, { color: C.orange }]}>Delete</Text>
+                    <Text style={[st.noteBtn, { color: C.orange }]}>{t('common.delete')}</Text>
                   </Pressable>
                 </View>
               </View>
@@ -122,7 +122,7 @@ export default function NotesScreen() {
           <TextInput
             value={draft}
             onChangeText={setDraft}
-            placeholder={editingId ? 'Edit note\u2026' : 'Write a note\u2026'}
+            placeholder={editingId ? t('common.edit') + '\u2026' : t('notes.write')}
             placeholderTextColor={C.muted}
             multiline
             style={st.input}
@@ -131,7 +131,7 @@ export default function NotesScreen() {
             onPress={saveDraft}
             style={({ pressed }) => [st.save, (pressed || !draft.trim()) && { opacity: 0.7 }]}
           >
-            <Text style={st.saveTxt}>{editingId ? 'Update' : 'Save'}</Text>
+            <Text style={st.saveTxt}>{editingId ? t('common.update') : t('common.save')}</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>

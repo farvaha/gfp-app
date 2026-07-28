@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../src/auth/AuthContext';
+import { useLocale } from '../src/i18n/locale';
 import { C, F, R } from '../constants/gfp';
 
 type Mode = 'login' | 'register';
@@ -65,6 +66,11 @@ export default function Landing() {
   const [terms, setTerms] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [busy, setBusy] = useState(false);
+  // OTP stage: after the first register call the server emails a 6-digit
+  // code and we ask for it before the account is actually created.
+  const [otpStage, setOtpStage] = useState(false);
+  const [otp, setOtp] = useState('');
+  const { t } = useLocale();
 
   const emailOk = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim());
   // The server rejects passwords under 10 characters - validate the same
@@ -81,6 +87,7 @@ export default function Landing() {
       if (!name.trim()) return 'Enter your name.';
       if (!age18) return 'Please confirm you are 18 or older.';
       if (!terms) return 'Please accept the Terms and Privacy Policy.';
+      if (otpStage && otp.trim().length !== 6) return 'Enter the 6-digit code from your email.';
     }
     return null;
   }
@@ -104,11 +111,18 @@ export default function Landing() {
           sport,
           age_confirmed: 1,
           terms_accepted: 1,
+          otp: otpStage ? otp.trim() : undefined,
         });
       }
       // The root Gate redirects to the tabs once `user` is set.
       router.replace('/(tabs)');
     } catch (e: any) {
+      if (e?.code === 'otp_required' || /OTP_REQUIRED/.test(String(e?.message))) {
+        // Server emailed the code - switch the card into verification mode.
+        setOtpStage(true);
+        setBusy(false);
+        return;
+      }
       const msg = String(e?.message || 'Something went wrong. Please try again.');
       Alert.alert(mode === 'login' ? 'Could not sign in' : 'Could not create account', msg);
     } finally {
@@ -155,14 +169,14 @@ export default function Landing() {
                 onPress={() => setMode('login')}
                 style={[styles.segBtn, mode === 'login' && styles.segBtnOn]}
               >
-                <Text style={[styles.segTxt, mode === 'login' && styles.segTxtOn]}>Log in</Text>
+                <Text style={[styles.segTxt, mode === 'login' && styles.segTxtOn]}>{t('auth.login')}</Text>
               </Pressable>
               <Pressable
                 onPress={() => setMode('register')}
                 style={[styles.segBtn, mode === 'register' && styles.segBtnOn]}
               >
                 <Text style={[styles.segTxt, mode === 'register' && styles.segTxtOn]}>
-                  Create account
+                  {t('auth.createAccount')}
                 </Text>
               </Pressable>
             </View>
@@ -171,7 +185,7 @@ export default function Landing() {
               <TextInput
                 value={name}
                 onChangeText={setName}
-                placeholder="Your name"
+                placeholder={t('auth.yourName')}
                 placeholderTextColor={C.muted}
                 autoCapitalize="words"
                 style={styles.input}
@@ -181,7 +195,7 @@ export default function Landing() {
             <TextInput
               value={email}
               onChangeText={setEmail}
-              placeholder="Email"
+              placeholder={t('auth.email')}
               placeholderTextColor={C.muted}
               autoCapitalize="none"
               autoCorrect={false}
@@ -194,7 +208,7 @@ export default function Landing() {
               <TextInput
                 value={password}
                 onChangeText={setPassword}
-                placeholder={mode === 'register' ? 'Password (min 10 characters)' : 'Password'}
+                placeholder={mode === 'register' ? t('auth.passwordMin') : t('auth.password')}
                 placeholderTextColor={C.muted}
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -213,9 +227,37 @@ export default function Landing() {
               </Text>
             )}
 
-            {mode === 'register' && (
+            {mode === 'register' && otpStage && (
+              <View style={styles.otpBox}>
+                <Text style={styles.otpTitle}>{t('otp.title')}</Text>
+                <Text style={styles.otpMsg}>{t('otp.sent')}</Text>
+                <TextInput
+                  value={otp}
+                  onChangeText={(v) => setOtp(v.replace(/[^0-9]/g, '').slice(0, 6))}
+                  placeholder={t('otp.placeholder')}
+                  placeholderTextColor={C.muted}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  style={[styles.input, styles.otpInput]}
+                />
+                <Pressable
+                  onPress={() => {
+                    setOtp('');
+                    setOtpStage(false);
+                    // Resubmitting without a code makes the server email a fresh one.
+                    setTimeout(submit, 50);
+                  }}
+                  hitSlop={8}
+                  style={{ alignSelf: 'center', paddingVertical: 6 }}
+                >
+                  <Text style={styles.forgotTxt}>{t('otp.resend')}</Text>
+                </Pressable>
+              </View>
+            )}
+
+            {mode === 'register' && !otpStage && (
               <>
-                <Text style={styles.sportLabel}>Your sport</Text>
+                <Text style={styles.sportLabel}>{t('auth.yourSport')}</Text>
                 <View style={styles.sportWrap}>
                   {SPORTS.map((s) => (
                     <Pressable
@@ -229,10 +271,10 @@ export default function Landing() {
                 </View>
 
                 <CheckRow checked={age18} onToggle={() => setAge18((v) => !v)}>
-                  I am 18 or older.
+                  {t('auth.age18')}
                 </CheckRow>
                 <CheckRow checked={terms} onToggle={() => setTerms((v) => !v)}>
-                  I accept the Terms and Privacy Policy.
+                  {t('auth.terms')}
                 </CheckRow>
               </>
             )}
@@ -245,13 +287,19 @@ export default function Landing() {
               ]}
             >
               <Text style={styles.primaryText}>
-                {busy ? 'Please wait\u2026' : mode === 'login' ? 'Log in' : 'Create account'}
+                {busy
+                  ? t('common.pleaseWait')
+                  : mode === 'login'
+                  ? t('auth.login')
+                  : otpStage
+                  ? t('otp.verify')
+                  : t('auth.createAccount')}
               </Text>
             </Pressable>
 
             {mode === 'login' && (
               <Pressable onPress={onForgot} hitSlop={8} style={styles.forgot}>
-                <Text style={styles.forgotTxt}>Forgot password?</Text>
+                <Text style={styles.forgotTxt}>{t('auth.forgot')}</Text>
               </Pressable>
             )}
           </View>
@@ -260,9 +308,9 @@ export default function Landing() {
             style={({ pressed }) => [styles.secondary, pressed && styles.pressed]}
             onPress={() => router.push('/quiz')}
           >
-            <Text style={styles.secondaryText}>Build my plan \u2014 free</Text>
+            <Text style={styles.secondaryText}>{t('auth.buildFree')}</Text>
           </Pressable>
-          <Text style={styles.trial}>14-day free Companion trial after your plan</Text>
+          <Text style={styles.trial}>{t('auth.trialNote')}</Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -313,6 +361,14 @@ const styles = StyleSheet.create({
   sportChipOn: { backgroundColor: 'rgba(249,115,22,0.15)', borderColor: C.orange },
   sportTxt: { color: C.muted, fontFamily: F.bodyMed, fontSize: 12 },
   sportTxtOn: { color: C.orange, fontFamily: F.bodySemi },
+
+  otpBox: {
+    backgroundColor: C.card2, borderRadius: R.md, borderWidth: 1, borderColor: C.orange,
+    padding: 14, marginTop: 12, marginBottom: 4,
+  },
+  otpTitle: { color: C.ink, fontFamily: F.bodySemi, fontSize: 15, marginBottom: 6 },
+  otpMsg: { color: C.muted, fontFamily: F.body, fontSize: 12, lineHeight: 18, marginBottom: 10 },
+  otpInput: { textAlign: 'center', fontSize: 20, letterSpacing: 6 },
 
   checkRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
   checkbox: {
