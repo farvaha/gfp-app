@@ -17,6 +17,7 @@ export const EP = {
   // auth (cookie session, email + password)
   login: '/gfp/v1/auth/login',
   register: '/gfp/v1/auth/register',
+  feedback: '/gfp/v1/feedback',
   logout: '/gfp/v1/auth/logout',
   me: '/gfp/v1/auth/me',
   forgot: '/gfp/v1/auth/forgot-password',

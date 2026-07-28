@@ -188,7 +188,7 @@ export const Api = {
   },
   /** POST /auth/register — create an account. If the server logs the user in on
    *  register, the cookie session is already live afterwards. */
-  register: async (payload: { email: string; password: string; name?: string }) => {
+  register: async (payload: { email: string; password: string; name?: string; sport?: string; age_confirmed?: number; terms_accepted?: number }) => {
     const res = await api<any>(EP.register, {
       method: 'POST',
       body: { ...payload, username: payload.email },
@@ -200,6 +200,11 @@ export const Api = {
   /** POST /auth/forgot-password — trigger a reset email. */
   forgot: (email: string) =>
     api(EP.forgot, { method: 'POST', body: { email }, noAuthRedirect: true }),
+
+  /** POST /feedback — suggestion for the developer. The server runs its own
+   *  abuse screen and tracks strikes; a banned account gets `banned: true`. */
+  sendFeedback: (payload: { message: string; flagged_client?: boolean }) =>
+    api<any>(EP.feedback, { method: 'POST', body: payload }),
 
   /** POST /companion/protocols — save a Build-My-Plan protocol (builder_state +
    *  client-computed target_kcal). Returns the created/active protocol. */
