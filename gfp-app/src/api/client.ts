@@ -188,7 +188,7 @@ export const Api = {
   },
   /** POST /auth/register — create an account. If the server logs the user in on
    *  register, the cookie session is already live afterwards. */
-  register: async (payload: { email: string; password: string; name?: string; sport?: string; age_confirmed?: number; terms_accepted?: number }) => {
+  register: async (payload: { email: string; password: string; name?: string; sport?: string; age_confirmed?: number; terms_accepted?: number; otp?: string }) => {
     const res = await api<any>(EP.register, {
       method: 'POST',
       body: { ...payload, username: payload.email },
