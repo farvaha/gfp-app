@@ -17,7 +17,7 @@ type AuthState = {
   // shared native jar and returns the signed-in user (throws on failure).
   login: (email: string, password: string) => Promise<Me>;
   // Native account creation, then sign-in.
-  register: (payload: { email: string; password: string; name?: string; sport?: string; age_confirmed?: number; terms_accepted?: number }) => Promise<Me>;
+  register: (payload: { email: string; password: string; name?: string; sport?: string; age_confirmed?: number; terms_accepted?: number; otp?: string }) => Promise<Me>;
   // Trigger a password-reset email.
   forgot: (email: string) => Promise<void>;
   // Called by the WebView layer once a login/signup completes and a nonce is captured.
@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [persist]);
 
   const register = useCallback(
-    async (payload: { email: string; password: string; name?: string; sport?: string; age_confirmed?: number; terms_accepted?: number }): Promise<Me> => {
+    async (payload: { email: string; password: string; name?: string; sport?: string; age_confirmed?: number; terms_accepted?: number; otp?: string }): Promise<Me> => {
       const res = await Api.register({
         email: payload.email.trim(),
         password: payload.password,
@@ -91,7 +91,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         sport: payload.sport,
         age_confirmed: payload.age_confirmed,
         terms_accepted: payload.terms_accepted,
+        otp: payload.otp,
       });
+      // First round-trip: the server emailed a verification code and is
+      // waiting for it. Surface that to the screen as a typed signal.
+      if (res && res.otp_required) {
+        const err: any = new Error('OTP_REQUIRED');
+        err.code = 'otp_required';
+        throw err;
+      }
       // If register logs the user straight in, a session cookie is now set.
       let me: Me | null =
         (res && res.user) ? res.user :
