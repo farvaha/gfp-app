@@ -17,7 +17,7 @@ type AuthState = {
   // shared native jar and returns the signed-in user (throws on failure).
   login: (email: string, password: string) => Promise<Me>;
   // Native account creation, then sign-in.
-  register: (payload: { email: string; password: string; name?: string }) => Promise<Me>;
+  register: (payload: { email: string; password: string; name?: string; sport?: string; age_confirmed?: number; terms_accepted?: number }) => Promise<Me>;
   // Trigger a password-reset email.
   forgot: (email: string) => Promise<void>;
   // Called by the WebView layer once a login/signup completes and a nonce is captured.
@@ -83,11 +83,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [persist]);
 
   const register = useCallback(
-    async (payload: { email: string; password: string; name?: string }): Promise<Me> => {
+    async (payload: { email: string; password: string; name?: string; sport?: string; age_confirmed?: number; terms_accepted?: number }): Promise<Me> => {
       const res = await Api.register({
         email: payload.email.trim(),
         password: payload.password,
         name: payload.name?.trim(),
+        sport: payload.sport,
+        age_confirmed: payload.age_confirmed,
+        terms_accepted: payload.terms_accepted,
       });
       // If register logs the user straight in, a session cookie is now set.
       let me: Me | null =
