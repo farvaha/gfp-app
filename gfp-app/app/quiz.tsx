@@ -139,7 +139,7 @@ export default function Quiz() {
         ))}
       </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={'padding'}>
         <ScrollView contentContainerStyle={s.body} keyboardShouldPersistTaps="handled">
           {step === 0 && (
             <Card>
