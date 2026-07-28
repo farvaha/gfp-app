@@ -120,12 +120,21 @@ export default function TrainScreen() {
   async function save(status: 'in_progress' | 'completed') {
     setBusy(true);
     try {
-      const sets = rows.map((r) => ({
-        ex: r.ex,
-        reps: r.reps,
-        kg: r.kg ? Number(r.kg) : null,
-        done: r.done,
-      }));
+      const sets = rows.map((r) => {
+        // The server's end-of-day analysis sums `weight_kg * reps` per set —
+        // it reads the keys `weight_kg` and `reps` (numeric). Sending only
+        // `kg` is why History showed "0 kg volume" for logged workouts.
+        const repsNum = parseInt(String(r.reps).replace(/[^0-9]/g, ' ').trim(), 10) || 0;
+        const kgNum = r.kg ? Number(r.kg) : 0;
+        return {
+          ex: r.ex,
+          reps: repsNum,
+          reps_label: r.reps,
+          kg: kgNum || null,
+          weight_kg: kgNum,
+          done: r.done,
+        };
+      });
       // Roll up totals so server-side analysis (volume, top weight) matches
       // what was actually logged - this is what History and the daily analysis read.
       const total_sets = rows.filter((r) => r.done).length;
@@ -161,7 +170,7 @@ export default function TrainScreen() {
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <AppHeader title="Train" subtitle={day?.name} />
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={'padding'}>
       <ScrollView
         contentContainerStyle={st.body}
         refreshControl={

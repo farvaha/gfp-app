@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { Card, H2, Muted, Btn, MacroBar, Chip } from '../../components/ui';
@@ -267,11 +267,27 @@ export default function TodayScreen() {
         onCancel={() => setManualOpen(false)}
         onSave={saveManualMeal}
       />
+      {/* Floating personal-notes button - quick capture from anywhere on Today. */}
+      <Pressable
+        onPress={() => router.push('/notes')}
+        style={({ pressed }) => [styles.fab, pressed && { opacity: 0.85 }]}
+        accessibilityLabel="Personal notes"
+      >
+        <Text style={styles.fabTxt}>{'\u270d'}</Text>
+      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  fab: {
+    position: 'absolute', right: 18, bottom: 24,
+    width: 54, height: 54, borderRadius: 27,
+    backgroundColor: C.orange, alignItems: 'center', justifyContent: 'center',
+    elevation: 6, shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+  },
+  fabTxt: { fontSize: 22, color: '#fff' },
   body: { padding: 14, gap: 12 },
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
   scorePill: {

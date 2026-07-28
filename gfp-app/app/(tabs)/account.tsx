@@ -6,6 +6,7 @@ import { useCached } from '../../src/hooks/useCached';
 import { EP, WEB } from '../../src/api/endpoints';
 import { useAuth } from '../../src/auth/AuthContext';
 import { useLocale } from '../../src/i18n/locale';
+import { useRouter } from 'expo-router';
 import { C, F, R } from '../../constants/gfp';
 
 // Account is fully native - nothing here renders inside an in-app WebView.
@@ -48,6 +49,7 @@ function initialsFor(name?: string, email?: string) {
 
 export default function AccountScreen() {
   const { user, logout } = useAuth();
+  const router = useRouter();
   const { withLang } = useLocale();
   const billing = useCached<any>('billing', EP.billing);
 
@@ -148,6 +150,18 @@ export default function AccountScreen() {
 
         <Card>
           <H2>Session</H2>
+          <Btn
+            label="Personal notes"
+            kind="ghost"
+            onPress={() => router.push('/notes')}
+            style={{ marginBottom: 8 }}
+          />
+          <Btn
+            label="Suggest to the developer"
+            kind="ghost"
+            onPress={() => router.push('/feedback')}
+            style={{ marginBottom: 8 }}
+          />
           <Btn label="Log out" kind="ghost" onPress={logout} />
         </Card>
 
