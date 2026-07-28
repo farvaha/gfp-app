@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Btn, Muted } from './ui';
 import { C, F, R } from '../constants/gfp';
 
@@ -64,6 +64,7 @@ export function PhotoMealSheet({
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onCancel}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
       <View style={s.backdrop}>
         <View style={s.sheet}>
           <ScrollView keyboardShouldPersistTaps="handled">
@@ -109,6 +110,7 @@ export function PhotoMealSheet({
           </ScrollView>
         </View>
       </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

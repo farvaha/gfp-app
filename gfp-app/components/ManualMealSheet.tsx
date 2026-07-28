@@ -47,7 +47,7 @@ export function ManualMealSheet({
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onCancel}>
       <KeyboardAvoidingView
         style={s.backdrop}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={'padding'}
       >
         <View style={[s.sheet, { paddingBottom: 18 + insets.bottom }]}>
           <ScrollView keyboardShouldPersistTaps="handled">
