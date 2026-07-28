@@ -28,12 +28,7 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      [
-        "expo-image-picker",
-        {
-          "cameraPermission": "GetFitPlans uses the camera to log meals by photo."
-        }
-      ]
+      "expo-local-authentication"
     ],
     "experiments": {
       "typedRoutes": false
