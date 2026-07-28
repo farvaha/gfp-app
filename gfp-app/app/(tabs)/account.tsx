@@ -50,7 +50,7 @@ function initialsFor(name?: string, email?: string) {
 export default function AccountScreen() {
   const { user, logout } = useAuth();
   const router = useRouter();
-  const { withLang } = useLocale();
+  const { withLang, t, native } = useLocale();
   const billing = useCached<any>('billing', EP.billing);
 
   // Opens in the system browser, never in an in-app WebView.
@@ -73,7 +73,7 @@ export default function AccountScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <AppHeader title="Account" />
+      <AppHeader title={t('tab.account')} />
       <ScrollView
         contentContainerStyle={st.body}
         refreshControl={
@@ -151,18 +151,24 @@ export default function AccountScreen() {
         <Card>
           <H2>Session</H2>
           <Btn
-            label="Personal notes"
+            label={t('notes.title')}
             kind="ghost"
             onPress={() => router.push('/notes')}
             style={{ marginBottom: 8 }}
           />
           <Btn
-            label="Suggest to the developer"
+            label={t('lang.title') + ' \u00b7 ' + native}
+            kind="ghost"
+            onPress={() => router.push('/language')}
+            style={{ marginBottom: 8 }}
+          />
+          <Btn
+            label={t('fb.title')}
             kind="ghost"
             onPress={() => router.push('/feedback')}
             style={{ marginBottom: 8 }}
           />
-          <Btn label="Log out" kind="ghost" onPress={logout} />
+          <Btn label={t('auth.logout')} kind="ghost" onPress={logout} />
         </Card>
 
         <View style={{ height: 24 }} />

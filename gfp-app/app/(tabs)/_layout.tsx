@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLocale } from '../../src/i18n/locale';
 import { StyleSheet, View } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,6 +28,7 @@ function CenterButton({ focused }: { focused: boolean }) {
 }
 
 export default function TabLayout() {
+  const { t } = useLocale();
   const insets = useSafeAreaInsets();
   // Checks /gfp/v1/app-version at most every 6h and offers the new APK.
   useUpdateCheck();
@@ -55,7 +57,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Today',
+          title: t('tab.today'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="restaurant-outline" color={color} size={size} />
           ),
@@ -64,7 +66,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="train"
         options={{
-          title: 'Train',
+          title: t('tab.train'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="barbell-outline" color={color} size={size} />
           ),
@@ -80,7 +82,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="history"
         options={{
-          title: 'History',
+          title: t('tab.history'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="time-outline" color={color} size={size} />
           ),
@@ -89,7 +91,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="account"
         options={{
-          title: 'Account',
+          title: t('tab.account'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-circle-outline" color={color} size={size} />
           ),

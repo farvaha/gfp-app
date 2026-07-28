@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
+import { useLocale } from '../../src/i18n/locale';
 import { Card, H2, Muted, Btn, MacroBar, Chip } from '../../components/ui';
 import { PhotoMealSheet, PhotoEstimate } from '../../components/PhotoMealSheet';
 import { ManualMealSheet } from '../../components/ManualMealSheet';
@@ -16,6 +17,8 @@ import { C, F, R } from '../../constants/gfp';
 
 export default function TodayScreen() {
   const router = useRouter();
+  const billing = useCached<any>('billing', EP.billing);
+  const { t } = useLocale();
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
   const [estimate, setEstimate] = useState<PhotoEstimate | null>(null);
@@ -49,6 +52,13 @@ export default function TodayScreen() {
   const mealsTarget = prot.data?.computed?.meals_count ?? adh.data?.meals_target ?? 0;
 
   async function photoMeal() {
+    // Photo meal logging is a Premium (Enhanced prep) feature. The server
+    // enforces this too - the client check just gives a friendlier message.
+    const plan = String(billing.data?.plan || '');
+    if (plan !== 'enhanced') {
+      Alert.alert(t('premium.photoTitle'), t('premium.photoMsg'));
+      return;
+    }
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) {
       Alert.alert('Camera access needed', 'Allow camera access to log a meal by photo.');
