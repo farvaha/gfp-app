@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useLocale } from '../../src/i18n/locale';
 import { Card, H2, Muted, Btn, Chip } from '../../components/ui';
 import { PlanBody } from '../../components/PlanBody';
 import { PlanDetail } from '../../components/PlanDetail';
@@ -10,6 +11,7 @@ import { EP } from '../../src/api/endpoints';
 import { C, F } from '../../constants/gfp';
 
 export default function PlanScreen() {
+  const { t } = useLocale();
   const router = useRouter();
   const prot = useCached<any>('active-protocol', EP.activeProtocol);
   const plan = useCached<any>('plan-full', EP.plan);
@@ -24,7 +26,7 @@ export default function PlanScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <AppHeader title="My plan" />
+      <AppHeader title={t('tab.plan')} />
       <ScrollView
         contentContainerStyle={st.body}
         refreshControl={
@@ -53,7 +55,7 @@ export default function PlanScreen() {
               </View>
             </>
           ) : (
-            <Muted>Take the 2-minute quiz and get calories, macros, meals and a split.</Muted>
+            <Muted>{t('plan.quizHint')}</Muted>
           )}
 
           <Btn
@@ -70,7 +72,7 @@ export default function PlanScreen() {
         {!!c && hasRichPlanText && (
           <Card>
             <View style={st.rowBetween}>
-              <H2>Full plan notes</H2>
+              <H2>{t('plan.fullNotes')}</H2>
               <Btn
                 label={showFull ? 'Hide' : 'Show'}
                 kind="ghost"

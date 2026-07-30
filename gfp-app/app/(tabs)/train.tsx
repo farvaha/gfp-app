@@ -6,6 +6,8 @@ import { useCached } from '../../src/hooks/useCached';
 import { Api } from '../../src/api/client';
 import { EP } from '../../src/api/endpoints';
 import { C, F, R } from '../../constants/gfp';
+import { useLocale } from '../../src/i18n/locale';
+import { MUSCLES, MuscleKey, suggestionsFor } from '../../src/lib/muscles';
 
 /** One editable set row: reps + weight, exactly like the web app. */
 interface SetRow {
@@ -40,6 +42,24 @@ export default function TrainScreen() {
   const [cxSets, setCxSets] = useState('3');
   const [cxReps, setCxReps] = useState('');
   const [cxKg, setCxKg] = useState('');
+  const { t } = useLocale();
+  // Multi-muscle workout builder: pick any combination (e.g. chest + triceps)
+  // and get one combined suggestion list to build today's session from.
+  const [muscles, setMuscles] = useState<MuscleKey[]>([]);
+  const suggestions = useMemo(() => suggestionsFor(muscles), [muscles]);
+
+  function toggleMuscle(m: MuscleKey) {
+    setMuscles((prev) => (prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]));
+  }
+
+  function addSuggested(ex: string) {
+    setRows((prev) => [
+      ...prev,
+      { ex, reps: '10', kg: '', done: false },
+      { ex, reps: '10', kg: '', done: false },
+      { ex, reps: '10', kg: '', done: false },
+    ]);
+  }
 
   // the workout already logged today, if any (PATCH target)
   const logged = wk.data?.workouts?.[0] ?? wk.data?.active ?? null;
@@ -158,9 +178,9 @@ export default function TrainScreen() {
       }
       await wk.refresh();
       adh.refresh();
-      if (status === 'completed') Alert.alert('Workout saved', 'Nice work.');
+      if (status === 'completed') Alert.alert(t('train.saved'), t('train.niceWork'));
     } catch (e: any) {
-      Alert.alert('Could not save', e?.message || 'Please try again.');
+      Alert.alert(t('common.tryAgain'), e?.message || '');
     } finally {
       setBusy(false);
     }
@@ -168,7 +188,7 @@ export default function TrainScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <AppHeader title="Train" subtitle={day?.name} />
+      <AppHeader title={t('tab.train')} subtitle={day?.name} />
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={'padding'}>
       <ScrollView
@@ -189,10 +209,10 @@ export default function TrainScreen() {
         {/* Adherence today */}
         <Card>
           <View style={st.rowBetween}>
-            <H2>Adherence today</H2>
+            <H2>{t('train.adherence')}</H2>
             <Chip label={`${adh.data?.score_pct ?? 0}%`} />
           </View>
-          <Muted>{adh.data?.coach_message || 'Log your sets as you go.'}</Muted>
+          <Muted>{adh.data?.coach_message || t('train.logHint')}</Muted>
         </Card>
 
         {/* Planned days */}
@@ -212,8 +232,8 @@ export default function TrainScreen() {
 
             <Card>
               <View style={st.rowBetween}>
-                <H2>{day?.name ?? 'Workout'}</H2>
-                <Chip label={`${doneCount}/${rows.length} sets`} />
+                <H2>{day?.name ?? t('train.workout')}</H2>
+                <Chip label={`${doneCount}/${rows.length} ${t('train.sets')}`} />
               </View>
 
               {grouped.map((g) => (
@@ -232,7 +252,7 @@ export default function TrainScreen() {
                       <TextInput
                         value={rows[i].reps}
                         onChangeText={(v) => edit(i, { reps: v })}
-                        placeholder="reps"
+                        placeholder={t('train.reps')}
                         placeholderTextColor={C.muted}
                         style={st.input}
                       />
@@ -253,30 +273,30 @@ export default function TrainScreen() {
                   ))}
 
                   <Text onPress={() => addSet(g.idxs[g.idxs.length - 1], g.ex)} style={st.addSet}>
-                    + add set
+                    {t('train.addSet')}
                   </Text>
                 </View>
               ))}
 
               <View style={st.customBox}>
-                <Text style={st.customTitle}>Add another exercise</Text>
-                <TextInput value={cxName} onChangeText={setCxName} placeholder="Exercise name" placeholderTextColor={C.muted} style={[st.input, st.flex]} />
+                <Text style={st.customTitle}>{t('train.addAnother')}</Text>
+                <TextInput value={cxName} onChangeText={setCxName} placeholder={t('train.exName')} placeholderTextColor={C.muted} style={[st.input, st.flex]} />
                 <View style={st.pair}>
-                  <TextInput value={cxSets} onChangeText={setCxSets} placeholder="sets" keyboardType="number-pad" placeholderTextColor={C.muted} style={[st.input, st.flex]} />
-                  <TextInput value={cxReps} onChangeText={setCxReps} placeholder="reps" placeholderTextColor={C.muted} style={[st.input, st.flex]} />
+                  <TextInput value={cxSets} onChangeText={setCxSets} placeholder={t('train.sets')} keyboardType="number-pad" placeholderTextColor={C.muted} style={[st.input, st.flex]} />
+                  <TextInput value={cxReps} onChangeText={setCxReps} placeholder={t('train.reps')} placeholderTextColor={C.muted} style={[st.input, st.flex]} />
                   <TextInput value={cxKg} onChangeText={setCxKg} placeholder="kg" keyboardType="numeric" placeholderTextColor={C.muted} style={[st.input, st.flex]} />
                 </View>
-                <Btn label="+ Add exercise" kind="ghost" onPress={addCustomExercise} style={{ marginTop: 8 }} />
+                <Btn label={'+ ' + t('train.addAnother')} kind="ghost" onPress={addCustomExercise} style={{ marginTop: 8 }} />
               </View>
 
               <Btn
-                label={busy ? 'Saving…' : loggedId ? 'Update workout' : 'Save workout'}
+                label={busy ? t('common.pleaseWait') : loggedId ? t('train.updateWorkout') : t('train.saveWorkout')}
                 onPress={() => save('in_progress')}
                 loading={busy}
                 style={{ marginTop: 12 }}
               />
               <Btn
-                label="Finish workout"
+                label={t('train.finishWorkout')}
                 kind="mint"
                 onPress={() => save('completed')}
                 disabled={busy}
@@ -286,10 +306,50 @@ export default function TrainScreen() {
           </>
         ) : (
           <Card>
-            <H2>No training split yet</H2>
-            <Muted>Build a plan to get your split.</Muted>
+            <H2>{t('train.noSplit')}</H2>
+            <Muted>{t('train.buildPlanHint')}</Muted>
           </Card>
         )}
+
+        {/* Muscle workout builder - independent of the plan split */}
+        <Card>
+          <H2>{t('train.targetMuscles')}</H2>
+          <Muted>{t('train.targetMusclesHint')}</Muted>
+          <View style={st.muscleWrap}>
+            {MUSCLES.map((m) => (
+              <Text
+                key={m.key}
+                onPress={() => toggleMuscle(m.key)}
+                style={[st.muscleChip, muscles.includes(m.key) && st.muscleChipOn]}
+              >
+                {t(m.labelKey)}
+              </Text>
+            ))}
+          </View>
+          {suggestions.length > 0 && (
+            <>
+              <Text style={st.suggTitle}>{t('train.suggested')}</Text>
+              {suggestions.map((sug) => {
+                const added = rows.some((r) => r.ex === sug.ex);
+                return (
+                  <View key={sug.ex} style={st.suggRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={st.suggEx}>{sug.ex}</Text>
+                      <Text style={st.suggMuscle}>{t(('muscle.' + sug.muscle) as any)}</Text>
+                    </View>
+                    <Text
+                      onPress={() => !added && addSuggested(sug.ex)}
+                      style={[st.suggAdd, added && st.suggAdded]}
+                    >
+                      {added ? '\u2713 ' + t('train.added') : '+ ' + t('train.add')}
+                    </Text>
+                  </View>
+                );
+              })}
+              <Muted>{t('train.suggestedNote')}</Muted>
+            </>
+          )}
+        </Card>
 
         <SportSession />
         <CardioCheckin onSaved={() => adh.refresh()} />
@@ -308,6 +368,7 @@ const SPORTS = [
 
 /** Sport session — POST /sessions */
 function SportSession() {
+  const { t } = useLocale();
   const [sport, setSport] = useState('');
   const [type, setType] = useState('');
   const [dur, setDur] = useState('');
@@ -345,7 +406,7 @@ function SportSession() {
 
   return (
     <Card>
-      <H2>Sport session</H2>
+      <H2>{t('train.sport')}</H2>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.sportRow}>
         {SPORTS.map((sp) => (
           <Text
@@ -357,29 +418,29 @@ function SportSession() {
           </Text>
         ))}
       </ScrollView>
-      {!sport && <Muted>Pick a sport to log a session.</Muted>}
+      {!sport && <Muted>{t('train.pickSport')}</Muted>}
       {!!sport && (
         <>
           {endurance ? (
             <View style={st.pair}>
               <TextInput value={dist} onChangeText={setDist} placeholder="Distance (km)" placeholderTextColor={C.muted} keyboardType="numeric" style={[st.input, st.flex]} />
-              <TextInput value={dur} onChangeText={setDur} placeholder="Minutes" placeholderTextColor={C.muted} keyboardType="number-pad" style={[st.input, st.flex]} />
+              <TextInput value={dur} onChangeText={setDur} placeholder={t('train.duration')} placeholderTextColor={C.muted} keyboardType="number-pad" style={[st.input, st.flex]} />
             </View>
           ) : mindful ? (
             <View style={st.pair}>
               <TextInput value={type} onChangeText={setType} placeholder="Style (e.g. hatha)" placeholderTextColor={C.muted} style={[st.input, st.flex]} />
-              <TextInput value={dur} onChangeText={setDur} placeholder="Minutes" placeholderTextColor={C.muted} keyboardType="number-pad" style={[st.input, st.flex]} />
+              <TextInput value={dur} onChangeText={setDur} placeholder={t('train.duration')} placeholderTextColor={C.muted} keyboardType="number-pad" style={[st.input, st.flex]} />
             </View>
           ) : (
             <View style={st.pair}>
               <TextInput value={type} onChangeText={setType} placeholder="Practice or match" placeholderTextColor={C.muted} style={[st.input, st.flex]} />
-              <TextInput value={dur} onChangeText={setDur} placeholder="Minutes" placeholderTextColor={C.muted} keyboardType="number-pad" style={[st.input, st.flex]} />
+              <TextInput value={dur} onChangeText={setDur} placeholder={t('train.duration')} placeholderTextColor={C.muted} keyboardType="number-pad" style={[st.input, st.flex]} />
             </View>
           )}
           <View style={st.pair}>
             <TextInput value={rpe} onChangeText={setRpe} placeholder="Effort RPE 1-10" placeholderTextColor={C.muted} keyboardType="number-pad" style={[st.input, st.flex]} />
           </View>
-          <Btn label={busy ? 'Logging...' : 'Log session'} onPress={log} loading={busy} style={{ marginTop: 10 }} />
+          <Btn label={busy ? t('common.pleaseWait') : t('train.logSession')} onPress={log} loading={busy} style={{ marginTop: 10 }} />
         </>
       )}
     </Card>
@@ -387,7 +448,8 @@ function SportSession() {
 }
 
 /** Cardio check-in — POST /checkins { bodyweight_kg, cardio_minutes, notes } */
-function CardioCheckin({ onSaved }: { onSaved: () => void }) {
+function CardioCheckin({
+  const { t } = useLocale(); onSaved }: { onSaved: () => void }) {
   const [kg, setKg] = useState('');
   const [cardio, setCardio] = useState('');
   const [busy, setBusy] = useState(false);
@@ -418,7 +480,7 @@ function CardioCheckin({ onSaved }: { onSaved: () => void }) {
         <TextInput value={kg} onChangeText={setKg} placeholder="Weight (kg)" placeholderTextColor={C.muted} keyboardType="numeric" style={[st.input, st.flex]} />
         <TextInput value={cardio} onChangeText={setCardio} placeholder="Cardio (min)" placeholderTextColor={C.muted} keyboardType="number-pad" style={[st.input, st.flex]} />
       </View>
-      <Btn label={busy ? 'Saving…' : 'Save check-in'} onPress={save} loading={busy} style={{ marginTop: 10 }} />
+      <Btn label={busy ? t('common.pleaseWait') : t('common.save')} onPress={save} loading={busy} style={{ marginTop: 10 }} />
     </Card>
   );
 }
@@ -474,6 +536,24 @@ const st = StyleSheet.create({
   addSet: { color: C.orange, fontFamily: F.bodySemi, fontSize: 12, marginTop: 4 },
   customBox: { marginTop: 14, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.line, paddingTop: 12, gap: 8 },
   customTitle: { color: C.ink, fontFamily: F.bodySemi, fontSize: 13 },
+  muscleWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10, marginBottom: 4 },
+  muscleChip: {
+    color: C.muted, fontFamily: F.bodyMed, fontSize: 12,
+    paddingHorizontal: 12, paddingVertical: 7, borderRadius: R.pill,
+    backgroundColor: C.card2, borderWidth: StyleSheet.hairlineWidth, borderColor: C.line,
+    overflow: 'hidden',
+  },
+  muscleChipOn: { color: '#fff', backgroundColor: C.orange, borderColor: C.orange },
+  suggTitle: { color: C.ink, fontFamily: F.bodySemi, fontSize: 13, marginTop: 12, marginBottom: 6 },
+  suggRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    paddingVertical: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.line,
+  },
+  suggEx: { color: C.ink, fontFamily: F.bodyMed, fontSize: 13 },
+  suggMuscle: { color: C.muted, fontFamily: F.body, fontSize: 11, marginTop: 1 },
+  suggAdd: { color: C.mint, fontFamily: F.bodySemi, fontSize: 12, paddingHorizontal: 8, paddingVertical: 6 },
+  suggAdded: { color: C.muted },
+
   sportRow: { gap: 8, paddingVertical: 8 },
   sportChip: { color: C.muted, fontFamily: F.bodyMed, fontSize: 12, paddingHorizontal: 12, paddingVertical: 7, borderRadius: R.pill, backgroundColor: C.card2, borderWidth: StyleSheet.hairlineWidth, borderColor: C.line, overflow: 'hidden' },
   sportChipOn: { color: '#fff', backgroundColor: C.orange, borderColor: C.orange },

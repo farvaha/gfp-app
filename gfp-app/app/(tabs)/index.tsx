@@ -128,7 +128,7 @@ export default function TodayScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <AppHeader title="Today" subtitle={prot.data?.computed?.goal ?? undefined} />
+      <AppHeader title={t('tab.today')} subtitle={prot.data?.computed?.goal ?? undefined} />
 
       <ScrollView
         contentContainerStyle={styles.body}
@@ -137,7 +137,7 @@ export default function TodayScreen() {
         {/* ---------------- Today vs your plan ---------------- */}
         <Card>
           <View style={styles.rowBetween}>
-            <H2>Today vs your plan</H2>
+            <H2>{t('today.vsPlan')}</H2>
             {adh.data?.score_pct != null && (
               <View style={styles.scorePill}>
                 <Text style={styles.scoreTxt}>{adh.data.score_pct}%</Text>
@@ -157,10 +157,10 @@ export default function TodayScreen() {
                 </Text>
               </View>
 
-              <MacroBar label="Protein" value={totals.protein || 0} target={targets.protein} color={C.mint} />
-              <MacroBar label="Calories" value={totals.kcal || 0} target={targets.kcal} color={C.orange} />
-              <MacroBar label="Carbs" value={totals.carbs || 0} target={targets.carbs} color={C.orangeLight} />
-              <MacroBar label="Fat" value={totals.fat || 0} target={targets.fat} color={C.muted} />
+              <MacroBar label={t('macro.protein')} value={totals.protein || 0} target={targets.protein} color={C.mint} />
+              <MacroBar label={t('macro.calories')} value={totals.kcal || 0} target={targets.kcal} color={C.orange} />
+              <MacroBar label={t('macro.carbs')} value={totals.carbs || 0} target={targets.carbs} color={C.orangeLight} />
+              <MacroBar label={t('macro.fat')} value={totals.fat || 0} target={targets.fat} color={C.muted} />
 
               {!targets.exact && (
                 <Muted>Add your bodyweight in Build My Plan for an exact protein target.</Muted>
@@ -168,21 +168,21 @@ export default function TodayScreen() {
             </>
           ) : (
             <>
-              <Muted>No plan yet — build one to see your targets.</Muted>
+              <Muted>{t('today.noPlanTargets')}</Muted>
               <Btn label="Build my plan" onPress={() => router.push('/(tabs)/plan')} style={{ marginTop: 12 }} />
             </>
           )}
         </Card>
 
-        {targets.kcal > 0 && (<MealPlanCard targets={targets} meals={mealsTarget || 4} diet={prot.data && prot.data.builder_state && prot.data.builder_state.diet} title="What to eat today" compact />)}
+        {targets.kcal > 0 && (<MealPlanCard targets={targets} meals={mealsTarget || 4} diet={prot.data && prot.data.builder_state && prot.data.builder_state.diet} title={t('today.whatToEat')} compact />)}
         <Card>
           <View style={styles.rowBetween}>
-            <H2>Meals</H2>
+            <H2>{t('today.meals')}</H2>
             <Chip label={`${mealsLogged}${mealsTarget ? ` / ${mealsTarget}` : ''}`} />
           </View>
 
           {mealsLogged === 0 ? (
-            <Muted>Nothing logged yet today.</Muted>
+            <Muted>{t('today.nothingLogged')}</Muted>
           ) : (
             meals.data.meals.map((m: any, i: number) => {
               // Server rows are raw meal_logs columns: raw_text, meal_slot,
@@ -230,13 +230,13 @@ export default function TodayScreen() {
           )}
 
           <Btn
-            label={busy ? 'Reading photo…' : '📷 Log meal by photo'}
+            label={busy ? t('common.pleaseWait') : '\ud83d\udcf7 ' + t('today.photoMeal')}
             onPress={photoMeal}
             loading={busy}
             style={{ marginTop: 12 }}
           />
           <Btn
-            label="Log meal manually"
+            label={t('today.logManually')}
             kind="ghost"
             onPress={() => setManualOpen(true)}
             style={{ marginTop: 8 }}
@@ -246,8 +246,8 @@ export default function TodayScreen() {
         {/* ---------------- Weekly coach review ---------------- */}
         <Card>
           <View style={styles.rowBetween}>
-            <H2>Weekly coach review</H2>
-            <Chip label="Premium" />
+            <H2>{t('today.weeklyReview')}</H2>
+            <Chip label={t('today.premium')} />
           </View>
           {ai ? (
             <AiSummary data={ai} />
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
   body: { padding: 14, gap: 12 },
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
   scorePill: {
-    backgroundColor: 'rgba(21,194,165,0.12)',
+    backgroundColor: 'rgba(91,158,143,0.15)',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: R.pill,

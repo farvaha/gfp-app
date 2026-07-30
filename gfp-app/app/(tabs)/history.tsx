@@ -6,8 +6,10 @@ import { useCached } from '../../src/hooks/useCached';
 import { Api } from '../../src/api/client';
 import { EP } from '../../src/api/endpoints';
 import { C, F, R } from '../../constants/gfp';
+import { useLocale } from '../../src/i18n/locale';
 
 export default function HistoryScreen() {
+  const { t } = useLocale();
   const dates = useCached<any>('history-dates', EP.historyDates);
   const [picked, setPicked] = useState<string | null>(null);
   const [day, setDay] = useState<any>(null);
@@ -45,7 +47,7 @@ export default function HistoryScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <AppHeader title="History" subtitle={active ?? undefined} />
+      <AppHeader title={t('tab.history')} subtitle={active ?? undefined} />
       <ScrollView
         contentContainerStyle={st.body}
         refreshControl={<RefreshControl refreshing={dates.refreshing} onRefresh={dates.refresh} tintColor={C.muted} />}
@@ -63,19 +65,19 @@ export default function HistoryScreen() {
         {/* Recent log */}
         <Card>
           <View style={st.rowBetween}>
-            <H2>Daily log</H2>
+            <H2>{t('history.dailyLog')}</H2>
             {day?.adherence?.score_pct != null && <Chip label={`${day.adherence.score_pct}%`} />}
           </View>
 
           {loading ? (
-            <Muted>Loading…</Muted>
+            <Muted>{t('history.loading')}</Muted>
           ) : !day ? (
-            <Muted>Nothing logged for this day.</Muted>
+            <Muted>{t('history.nothingDay')}</Muted>
           ) : (
             <>
               <Text style={st.sub}>Meals ({meals?.length ?? 0})</Text>
               {(meals ?? []).length === 0 ? (
-                <Muted>No meals logged.</Muted>
+                <Muted>{t('history.noMeals')}</Muted>
               ) : (
                 meals.map((m: any, i: number) => (
                   <Text key={i} style={st.line}>
@@ -86,7 +88,7 @@ export default function HistoryScreen() {
 
               <Text style={st.sub}>Workouts ({workouts?.length ?? 0})</Text>
               {(workouts ?? []).length === 0 ? (
-                <Muted>No workout logged.</Muted>
+                <Muted>{t('history.noWorkout')}</Muted>
               ) : (
                 workouts.map((w: any, i: number) => (
                   <Text key={i} style={st.line}>
@@ -110,13 +112,13 @@ export default function HistoryScreen() {
 
         {/* End-of-day analysis */}
         <Card>
-          <H2>End-of-day analysis</H2>
+          <H2>{t('today.review')}</H2>
           {analysis ? (
             <Text style={st.analysis}>
               {formatCoach(analysis)}
             </Text>
           ) : (
-            <Muted>Log your day and your analysis appears here.</Muted>
+            <Muted>{t('history.analysisHint')}</Muted>
           )}
         </Card>
 
@@ -131,6 +133,7 @@ export default function HistoryScreen() {
 
 /** Nearby Fitness — GET /companion/places */
 function NearbyFitness() {
+  const { t } = useLocale();
   const [q, setQ] = useState('');
   const [items, setItems] = useState<any[] | null>(null);
   const [busy, setBusy] = useState(false);
@@ -149,8 +152,8 @@ function NearbyFitness() {
 
   return (
     <Card>
-      <H2>Nearby fitness</H2>
-      <Muted>Gyms, studios and healthy food near you.</Muted>
+      <H2>{t('history.nearby')}</H2>
+      <Muted>{t('history.nearbyHint')}</Muted>
       <View style={st.searchRow}>
         <TextInput
           value={q}
@@ -161,7 +164,7 @@ function NearbyFitness() {
         />
         <Btn label={busy ? '…' : 'Find'} onPress={search} loading={busy} />
       </View>
-      {items && items.length === 0 && <Muted>Nothing found.</Muted>}
+      {items && items.length === 0 && <Muted>{t('history.nothingFound')}</Muted>}
       {(items ?? []).slice(0, 8).map((p: any, i: number) => (
         <Text key={i} style={st.line}>
           • {p.name || p.title} {p.address ? `— ${p.address}` : ''}
@@ -215,15 +218,15 @@ function NotificationPrefs() {
 
   return (
     <Card>
-      <H2>Notifications</H2>
+      <H2>{t('history.notifications')}</H2>
       {!p ? (
-        <Muted>Loading…</Muted>
+        <Muted>{t('history.loading')}</Muted>
       ) : (
         <>
-          <Row k="meals_enabled" label="Meal reminders" />
-          <Row k="workouts_enabled" label="Workout reminders" />
-          <Row k="checkins_enabled" label="Check-in reminders" />
-          <Row k="email_enabled" label="Email updates" />
+          <Row k="meals_enabled" label={t('notif.meals')} />
+          <Row k="workouts_enabled" label={t('notif.workouts')} />
+          <Row k="checkins_enabled" label={t('notif.checkins')} />
+          <Row k="email_enabled" label={t('notif.email')} />
         </>
       )}
     </Card>

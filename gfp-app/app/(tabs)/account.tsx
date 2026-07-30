@@ -65,7 +65,8 @@ export default function AccountScreen() {
 
   const b = billing.data;
   const status = String(b?.status || '');
-  const statusLabel = STATUS_LABEL[status] || (status || 'Unknown');
+  const statusKey: Record<string,string> = { none: 'acct.none', trial: 'acct.trial', active: 'acct.active', expired: 'acct.expired', cancelled: 'acct.expired' };
+  const statusLabel = statusKey[status] ? t(statusKey[status]) : (status || '?');
   const statusColor = STATUS_COLOR[status] || C.muted;
   const hasAccess = !!b?.has_access;
   const trialEnds = prettyDate(b?.trial_ends_at);
@@ -100,7 +101,7 @@ export default function AccountScreen() {
 
         <Card>
           <View style={st.rowBetween}>
-            <H2>Membership</H2>
+            <H2>{t('acct.membership')}</H2>
             {!!b && (
               <View style={[st.badge, { borderColor: statusColor }]}>
                 <Text style={[st.badgeTxt, { color: statusColor }]}>{statusLabel}</Text>
@@ -108,36 +109,36 @@ export default function AccountScreen() {
             )}
           </View>
 
-          {!b && billing.refreshing && <Muted>Loading your membership...</Muted>}
+          {!b && billing.refreshing && <Muted>{t('acct.loadingMembership')}</Muted>}
 
           {!b && !billing.refreshing && (
             <>
-              <Muted>Could not load your membership right now.</Muted>
-              <Btn label="Try again" kind="ghost" onPress={billing.refresh} style={{ marginTop: 10 }} />
+              <Muted>{t('acct.loadFail')}</Muted>
+              <Btn label={t('acct.tryAgain')} kind="ghost" onPress={billing.refresh} style={{ marginTop: 10 }} />
             </>
           )}
 
           {!!b && (
             <>
               {!!b.price_label && <Text style={st.price}>{b.price_label}</Text>}
-              {status === 'trial' && !!trialEnds && <Muted>Your free trial ends {trialEnds}.</Muted>}
-              {status === 'active' && !!paidUntil && <Muted>Renews {paidUntil}.</Muted>}
-              {status === 'expired' && <Muted>Your membership has ended. Renew to get your coach back.</Muted>}
-              {status === 'cancelled' && !!paidUntil && <Muted>Access continues until {paidUntil}.</Muted>}
-              {status === 'none' && <Muted>You are on the free plan.</Muted>}
+              {status === 'trial' && !!trialEnds && <Muted>{t('acct.trialEnds')} {trialEnds}.</Muted>}
+              {status === 'active' && !!paidUntil && <Muted>{t('acct.renews')} {paidUntil}.</Muted>}
+              {status === 'expired' && <Muted>{t('acct.ended')}</Muted>}
+              {status === 'cancelled' && !!paidUntil && <Muted>{t('acct.accessUntil')} {paidUntil}.</Muted>}
+              {status === 'none' && <Muted>{t('acct.freePlan')}</Muted>}
 
               {!hasAccess && (
                 <Btn
-                  label="Upgrade to Companion"
+                  label={t('acct.upgrade')}
                   kind="mint"
                   onPress={() => openExternal(b.checkout_url || WEB.companion)}
                   style={{ marginTop: 12 }}
                 />
               )}
 
-              <Text style={st.hint}>Everything here stays in the app - only card payment opens your browser, a security requirement.</Text>
+              <Text style={st.hint}>{t('acct.cardHint')}</Text>
               <Btn
-                label="Manage billing"
+                label={t('acct.manageBilling')}
                 kind="ghost"
                 onPress={() => openExternal(WEB.account)}
                 style={{ marginTop: 8 }}
@@ -149,7 +150,7 @@ export default function AccountScreen() {
         <ShopCard openExternal={openExternal} />
 
         <Card>
-          <H2>Session</H2>
+          <H2>{t('acct.session')}</H2>
           <Btn
             label={t('notes.title')}
             kind="ghost"
@@ -180,7 +181,8 @@ export default function AccountScreen() {
 // Native supplement shop - products come straight from the store API on the
 // site (wc/store/v1), drawn natively. Only the final checkout opens outside
 // the app, because payment cannot run natively without a payment SDK.
-function ShopCard({ openExternal }: { openExternal: (u?: string | null) => void }) {
+function ShopCard({
+  const { t } = useLocale(); openExternal }: { openExternal: (u?: string | null) => void }) {
   const [items, setItems] = useState<any[] | null>(null);
 
   useEffect(() => {
@@ -192,9 +194,9 @@ function ShopCard({ openExternal }: { openExternal: (u?: string | null) => void 
 
   return (
     <Card>
-      <H2>Supplements</H2>
-      {!items && <Muted>Loading the shop...</Muted>}
-      {!!items && items.length === 0 && <Muted>The shop is empty right now.</Muted>}
+      <H2>{t('acct.supplements')}</H2>
+      {!items && <Muted>{t('acct.loadingShop')}</Muted>}
+      {!!items && items.length === 0 && <Muted>{t('acct.shopEmpty')}</Muted>}
       {(items ?? []).map((p: any) => (
         <View key={p.id} style={st.prodRow}>
           {!!p.images?.[0]?.thumbnail && (
@@ -209,11 +211,11 @@ function ShopCard({ openExternal }: { openExternal: (u?: string | null) => void 
               </Text>
             )}
           </View>
-          <Btn label="Buy" kind="mint" onPress={() => openExternal(p.permalink)} />
+          <Btn label={t('acct.buy')} kind="mint" onPress={() => openExternal(p.permalink)} />
         </View>
       ))}
       <Text style={st.shopHint}>Checkout completes securely in your browser.</Text>
-      <Btn label="My orders" kind="ghost" onPress={() => openExternal(WEB.orders)} style={{ marginTop: 8 }} />
+      <Btn label={t('acct.orders')} kind="ghost" onPress={() => openExternal(WEB.orders)} style={{ marginTop: 8 }} />
     </Card>
   );
 }
