@@ -181,8 +181,8 @@ export default function AccountScreen() {
 // Native supplement shop - products come straight from the store API on the
 // site (wc/store/v1), drawn natively. Only the final checkout opens outside
 // the app, because payment cannot run natively without a payment SDK.
-function ShopCard({
-  const { t } = useLocale(); openExternal }: { openExternal: (u?: string | null) => void }) {
+function ShopCard({ openExternal }: { openExternal: (u?: string | null) => void }) {
+  const { t } = useLocale();
   const [items, setItems] = useState<any[] | null>(null);
 
   useEffect(() => {

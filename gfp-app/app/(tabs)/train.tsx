@@ -448,8 +448,8 @@ function SportSession() {
 }
 
 /** Cardio check-in — POST /checkins { bodyweight_kg, cardio_minutes, notes } */
-function CardioCheckin({
-  const { t } = useLocale(); onSaved }: { onSaved: () => void }) {
+function CardioCheckin({ onSaved }: { onSaved: () => void }) {
+  const { t } = useLocale();
   const [kg, setKg] = useState('');
   const [cardio, setCardio] = useState('');
   const [busy, setBusy] = useState(false);
