@@ -21,7 +21,6 @@ const SLOTS = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 // KeyboardAvoidingView and pushed up by the keyboard height, so the text you
 // are typing is always visible above the keyboard instead of hidden behind it.
 export function ManualMealSheet({
-  const { t } = useLocale();
   visible,
   saving,
   onCancel,
@@ -32,6 +31,7 @@ export function ManualMealSheet({
   onCancel: () => void;
   onSave: (v: { raw_text: string; meal_slot: string }) => void;
 }) {
+  const { t } = useLocale();
   const insets = useSafeAreaInsets();
   const [text, setText] = useState('');
   const [slot, setSlot] = useState('Lunch');

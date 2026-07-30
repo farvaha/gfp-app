@@ -14,8 +14,8 @@ import { C, F, R } from '../constants/gfp';
 interface Exercise { n?: string; s?: string }
 interface SplitDay { name?: string; ex?: Exercise[] }
 
-export function PlanDetail({
-  const { t } = useLocale(); protocol }: { protocol: any }) {
+export function PlanDetail({ protocol }: { protocol: any }) {
+  const { t } = useLocale();
   const c = protocol?.computed;
   if (!c) return null;
 

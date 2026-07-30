@@ -21,7 +21,6 @@ const SLOTS = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
  * every macro before saving, so we do the same.
  */
 export function PhotoMealSheet({
-  const { t } = useLocale();
   visible,
   estimate,
   saving,
@@ -38,6 +37,7 @@ export function PhotoMealSheet({
     items?: any;
   }) => void;
 }) {
+  const { t } = useLocale();
   const [kcal, setKcal] = useState('0');
   const [p, setP] = useState('0');
   const [cb, setCb] = useState('0');

@@ -9,12 +9,6 @@ import { C, F, R } from '../constants/gfp';
 // split of each, and what to actually put on the plate. Used on the quiz
 // summary, My Plan and (compact) on Today.
 export function MealPlanCard({
-  const { t } = useLocale();
-  const mealName = (n: string) => {
-    const key = 'meal.' + String(n || '').toLowerCase().replace(/[^a-z]/g, '');
-    const tr = t(key);
-    return tr === key ? n : tr;
-  };
   targets,
   meals,
   diet,
@@ -27,6 +21,12 @@ export function MealPlanCard({
   title?: string;
   compact?: boolean;
 }) {
+  const { t } = useLocale();
+  const mealName = (n: string) => {
+    const key = 'meal.' + String(n || '').toLowerCase().replace(/[^a-z]/g, '');
+    const tr = t(key);
+    return tr === key ? n : tr;
+  };
   const plan = buildMealPlan(targets, meals, { diet });
   if (!plan.length) return null;
 
