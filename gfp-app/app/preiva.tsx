@@ -14,12 +14,14 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Api } from '../src/api/client';
+import { useLocale, getLocale } from '../src/i18n/locale';
 import { C, F, R } from '../constants/gfp';
 
 type Msg = { id: string; role: 'user' | 'preiva'; text: string };
 const HISTORY_KEY = 'cache:preiva_history';
 
 export default function Preiva() {
+  const { t } = useLocale();
   const router = useRouter();
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
@@ -104,7 +106,7 @@ export default function Preiva() {
         <View style={s.inputRow}>
           <TextInput
             style={s.input}
-            placeholder={busy ? 'Preiva is thinking…' : 'Message Preiva'}
+            placeholder={busy ? t('preiva.thinking') : t('preiva.placeholder')}
             placeholderTextColor={C.muted}
             value={input}
             onChangeText={setInput}
