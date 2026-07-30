@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useLocale } from '../src/i18n/locale';
 import { Card, H2, Muted, Chip } from './ui';
 import { macroTargets } from '../src/lib/macros'; import { MealPlanCard } from './MealPlanCard';
 import { C, F, R } from '../constants/gfp';
@@ -13,7 +14,8 @@ import { C, F, R } from '../constants/gfp';
 interface Exercise { n?: string; s?: string }
 interface SplitDay { name?: string; ex?: Exercise[] }
 
-export function PlanDetail({ protocol }: { protocol: any }) {
+export function PlanDetail({
+  const { t } = useLocale(); protocol }: { protocol: any }) {
   const c = protocol?.computed;
   if (!c) return null;
 
@@ -24,22 +26,22 @@ export function PlanDetail({ protocol }: { protocol: any }) {
   return (
     <>
       <Card>
-        <H2>Daily targets</H2>
+        <H2>{t('plan.dailyTargets')}</H2>
         <View style={s.macroGrid}>
-          <Macro label="Calories" value={`${kcal}`} unit="kcal" accent={C.orange} />
-          <Macro label="Protein" value={`${macros.protein}`} unit="g" accent={C.mint} />
-          <Macro label="Carbs" value={`${macros.carbs}`} unit="g" />
-          <Macro label="Fat" value={`${macros.fat}`} unit="g" />
+          <Macro label={t('macro.calories')} value={`${kcal}`} unit="kcal" accent={C.orange} />
+          <Macro label={t('macro.protein')} value={`${macros.protein}`} unit="g" accent={C.mint} />
+          <Macro label={t('macro.carbs')} value={`${macros.carbs}`} unit="g" />
+          <Macro label={t('macro.fat')} value={`${macros.fat}`} unit="g" />
         </View>
         {!macros.exact && (
-          <Muted>Add your bodyweight in Build My Plan for an exact protein target.</Muted>
+          <Muted>{t('plan.bodyweightHint')}</Muted>
         )}
       </Card>
 
-      <MealPlanCard targets={macros} meals={Number(c.meals_count) || 4} diet={protocol && protocol.builder_state && protocol.builder_state.diet} title="Your meals" />{split.length > 0 && (
+      <MealPlanCard targets={macros} meals={Number(c.meals_count) || 4} diet={protocol && protocol.builder_state && protocol.builder_state.diet} title={t('plan.yourMeals')} />{split.length > 0 && (
         <Card>
           <View style={s.rowBetween}>
-            <H2>Training split</H2>
+            <H2>{t('plan.split')}</H2>
             <Chip label={`${split.length} days`} />
           </View>
           {split.map((d, i) => (
@@ -57,7 +59,7 @@ export function PlanDetail({ protocol }: { protocol: any }) {
       )}
 
       <Card>
-        <H2>Nutrition structure</H2>
+        <H2>{t('plan.nutriStructure')}</H2>
         <View style={s.line}>
           <Text style={s.lineLabel}>Goal</Text>
           <Text style={s.lineValue}>{c.goal || '-'}</Text>

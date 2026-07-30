@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useLocale } from '../src/i18n/locale';
 import { Card, H2, Muted } from './ui';
 import { buildMealPlan, mealSummary, MacroSet } from '../src/lib/meals';
 import { C, F, R } from '../constants/gfp';
@@ -8,6 +9,12 @@ import { C, F, R } from '../constants/gfp';
 // split of each, and what to actually put on the plate. Used on the quiz
 // summary, My Plan and (compact) on Today.
 export function MealPlanCard({
+  const { t } = useLocale();
+  const mealName = (n: string) => {
+    const key = 'meal.' + String(n || '').toLowerCase().replace(/[^a-z]/g, '');
+    const tr = t(key);
+    return tr === key ? n : tr;
+  };
   targets,
   meals,
   diet,
@@ -30,7 +37,7 @@ export function MealPlanCard({
       {plan.map((m, i) => (
         <View key={i} style={s.meal}>
           <View style={s.head}>
-            <Text style={s.name}>{m.name}</Text>
+            <Text style={s.name}>{mealName(m.name)}</Text>
             <Text style={s.time}>{m.time}</Text>
           </View>
           <Text style={s.macros}>

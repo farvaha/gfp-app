@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Modal, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Btn, Muted } from './ui';
 import { C, F, R } from '../constants/gfp';
+import { useLocale } from '../src/i18n/locale';
 
 export interface PhotoEstimate {
   kcal?: number;
@@ -20,6 +21,7 @@ const SLOTS = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
  * every macro before saving, so we do the same.
  */
 export function PhotoMealSheet({
+  const { t } = useLocale();
   visible,
   estimate,
   saving,
@@ -69,7 +71,7 @@ export function PhotoMealSheet({
         <View style={s.sheet}>
           <ScrollView keyboardShouldPersistTaps="handled">
             <Text style={s.title}>Check the numbers</Text>
-            <Muted>Preiva estimated this from your photo. Correct anything that looks off.</Muted>
+            <Muted>{t('sheet.photoHint')}</Muted>
 
             {!!detected && <Text style={s.detected}>{detected}</Text>}
 
@@ -85,10 +87,10 @@ export function PhotoMealSheet({
               ))}
             </View>
 
-            <Field label="Calories" unit="kcal" value={kcal} onChange={setKcal} />
-            <Field label="Protein" unit="g" value={p} onChange={setP} accent={C.mint} />
-            <Field label="Carbs" unit="g" value={cb} onChange={setCb} />
-            <Field label="Fat" unit="g" value={f} onChange={setF} />
+            <Field label={t('macro.calories')} unit="kcal" value={kcal} onChange={setKcal} />
+            <Field label={t('macro.protein')} unit="g" value={p} onChange={setP} accent={C.mint} />
+            <Field label={t('macro.carbs')} unit="g" value={cb} onChange={setCb} />
+            <Field label={t('macro.fat')} unit="g" value={f} onChange={setF} />
 
             <Btn
               label={saving ? 'Saving…' : 'Save meal'}
@@ -106,7 +108,7 @@ export function PhotoMealSheet({
               }
               style={{ marginTop: 14 }}
             />
-            <Btn label="Cancel" kind="ghost" onPress={onCancel} style={{ marginTop: 8 }} />
+            <Btn label={t('common.cancel')} kind="ghost" onPress={onCancel} style={{ marginTop: 8 }} />
           </ScrollView>
         </View>
       </View>

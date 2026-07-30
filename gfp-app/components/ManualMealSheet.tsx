@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Btn, Muted } from './ui';
+import { useLocale } from '../src/i18n/locale';
 import { C, F, R } from '../constants/gfp';
 
 const SLOTS = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
@@ -20,6 +21,7 @@ const SLOTS = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 // KeyboardAvoidingView and pushed up by the keyboard height, so the text you
 // are typing is always visible above the keyboard instead of hidden behind it.
 export function ManualMealSheet({
+  const { t } = useLocale();
   visible,
   saving,
   onCancel,
@@ -52,7 +54,7 @@ export function ManualMealSheet({
         <View style={[s.sheet, { paddingBottom: 18 + insets.bottom }]}>
           <ScrollView keyboardShouldPersistTaps="handled">
             <Text style={s.title}>Log a meal</Text>
-            <Muted>Describe what you ate - Preiva estimates the calories and macros.</Muted>
+            <Muted>{t('sheet.describeHint')}</Muted>
 
             <View style={s.slotRow}>
               {SLOTS.map((x) => (
@@ -79,7 +81,7 @@ export function ManualMealSheet({
               onPress={() => onSave({ raw_text: text.trim(), meal_slot: slot.toLowerCase() })}
               style={{ marginTop: 14 }}
             />
-            <Btn label="Cancel" kind="ghost" onPress={onCancel} style={{ marginTop: 8 }} />
+            <Btn label={t('common.cancel')} kind="ghost" onPress={onCancel} style={{ marginTop: 8 }} />
           </ScrollView>
         </View>
       </KeyboardAvoidingView>
