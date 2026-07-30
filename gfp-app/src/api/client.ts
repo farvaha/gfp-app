@@ -169,7 +169,12 @@ export const Api = {
     notes?: string;
     posing_done?: boolean;
   }) => api(EP.checkins, { method: 'POST', body: payload }),
-  chat: (payload: any) => api(EP.preiva, { method: 'POST', body: payload }),
+  chat: (payload: any) =>
+    api(EP.preiva, {
+      method: 'POST',
+      // The coach answers in the app's language.
+      body: { ...payload, lang: require('../i18n/locale').getLocale() },
+    }),
   logout: () => api(EP.logout, { method: 'POST', noAuthRedirect: true }),
 
   // --- native auth (cookie session, email + password) ---
