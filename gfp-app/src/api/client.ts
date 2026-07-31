@@ -218,7 +218,15 @@ export const Api = {
 
   // --- reads (verified routes) ---
   goalProgress: () => api<any>(EP.goalProgress),
-  weeklyReview: () => api<any>(EP.weeklyReview),
+  weeklyReview: () => {
+    const lang = require('../i18n/locale').getLocale();
+    return api<any>(EP.weeklyReview + (lang && lang !== 'en' ? `?lang=${lang}` : ''));
+  },
+  supplements: (date?: string) =>
+    api<any>(EP.supplements + (date ? `?date=${encodeURIComponent(date)}` : '')),
+  addSupplement: (payload: { date?: string; name: string; dose?: string }) =>
+    api<any>(EP.supplements, { method: 'POST', body: payload }),
+  deleteSupplement: (id: number) => api<any>(EP.supplement(id), { method: 'DELETE' }),
   historyDates: () => api<any>(EP.historyDates),
   sessions: (date?: string) =>
     api<any>(date ? `${EP.sessions}?date=${encodeURIComponent(date)}` : EP.sessions),

@@ -43,6 +43,8 @@ export const EP = {
   // verified live 2026-07-14
   sport: '/gfp/v1/companion/sport',
   places: '/gfp/v1/companion/places',
+  supplements: '/gfp/v1/companion/supplements',
+  supplement: (id: number) => `/gfp/v1/companion/supplements/${id}`, // DELETE
   notifPrefs: '/gfp/v1/companion/notifications/prefs',
   meal: (id: number) => `/gfp/v1/companion/meals/${id}`,      // DELETE
   workout: (id: number) => `/gfp/v1/companion/workouts/${id}`, // PATCH
