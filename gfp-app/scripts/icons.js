@@ -8,7 +8,7 @@ function mark(fg = null, plain = false) {
   const grad = fg
     ? ''
     : `<linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-         <stop offset="0" stop-color="#D68F6F"/><stop offset="1" stop-color="#C9714D"/>
+         <stop offset="0" stop-color="#FF8A5B"/><stop offset="1" stop-color="#FF6A2B"/>
        </linearGradient>`;
   const fill = fg || 'url(#g)';
   return `
