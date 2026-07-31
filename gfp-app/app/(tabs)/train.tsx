@@ -46,7 +46,17 @@ export default function TrainScreen() {
   // Multi-muscle workout builder: pick any combination (e.g. chest + triceps)
   // and get one combined suggestion list to build today's session from.
   const [muscles, setMuscles] = useState<MuscleKey[]>([]);
-  const suggestions = useMemo(() => suggestionsFor(muscles), [muscles]);
+  const suggestions = useMemo(() => {
+    const fromMuscles = suggestionsFor(muscles);
+    // Exercises from the selected plan day appear first, tagged as plan picks.
+    const fromPlan = (day?.ex ?? []).map((e: any) => ({ ex: String(e.n), muscle: 'plan' as any }));
+    const seen = new Set<string>();
+    const out: { ex: string; muscle: any }[] = [];
+    for (const x of [...fromPlan, ...fromMuscles]) {
+      if (!seen.has(x.ex)) { seen.add(x.ex); out.push(x); }
+    }
+    return out;
+  }, [muscles, day]);
 
   function toggleMuscle(m: MuscleKey) {
     setMuscles((prev) => (prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]));
@@ -80,18 +90,9 @@ export default function TrainScreen() {
       );
       return;
     }
-    if (!day) {
-      setRows([]);
-      return;
-    }
-    const next: SetRow[] = [];
-    for (const e of day.ex ?? []) {
-      const n = setCount(e.s);
-      for (let i = 0; i < n; i++) {
-        next.push({ ex: e.n, reps: repScheme(e.s), kg: '', done: false });
-      }
-    }
-    setRows(next);
+    // The workout starts empty - the user builds it from the muscle
+    // suggestions below or adds exercises manually.
+    setRows([]);
   }, [dayIdx, loggedId, prot.data]);
 
   const doneCount = rows.filter((r) => r.done).length;
@@ -230,6 +231,46 @@ export default function TrainScreen() {
               ))}
             </ScrollView>
 
+{/* Build by muscle - the single place to construct the workout */}
+        <Card>
+          <H2>{t('train.targetMuscles')}</H2>
+          <Muted>{t('train.targetMusclesHint')}</Muted>
+          <View style={st.muscleWrap}>
+            {MUSCLES.map((m) => (
+              <Text
+                key={m.key}
+                onPress={() => toggleMuscle(m.key)}
+                style={[st.muscleChip, muscles.includes(m.key) && st.muscleChipOn]}
+              >
+                {t(m.labelKey)}
+              </Text>
+            ))}
+          </View>
+          {suggestions.length > 0 && (
+            <>
+              <Text style={st.suggTitle}>{t('train.suggested')}</Text>
+              {suggestions.map((sug) => {
+                const added = rows.some((r) => r.ex === sug.ex);
+                return (
+                  <View key={sug.ex} style={st.suggRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={st.suggEx}>{sug.ex}</Text>
+                      <Text style={st.suggMuscle}>{t(('muscle.' + sug.muscle) as any)}</Text>
+                    </View>
+                    <Text
+                      onPress={() => !added && addSuggested(sug.ex)}
+                      style={[st.suggAdd, added && st.suggAdded]}
+                    >
+                      {added ? '\u2713 ' + t('train.added') : '+ ' + t('train.add')}
+                    </Text>
+                  </View>
+                );
+              })}
+              <Muted>{t('train.suggestedNote')}</Muted>
+            </>
+          )}
+        </Card>
+
             <Card>
               <View style={st.rowBetween}>
                 <H2>{day?.name ?? t('train.workout')}</H2>
@@ -310,46 +351,6 @@ export default function TrainScreen() {
             <Muted>{t('train.buildPlanHint')}</Muted>
           </Card>
         )}
-
-        {/* Muscle workout builder - independent of the plan split */}
-        <Card>
-          <H2>{t('train.targetMuscles')}</H2>
-          <Muted>{t('train.targetMusclesHint')}</Muted>
-          <View style={st.muscleWrap}>
-            {MUSCLES.map((m) => (
-              <Text
-                key={m.key}
-                onPress={() => toggleMuscle(m.key)}
-                style={[st.muscleChip, muscles.includes(m.key) && st.muscleChipOn]}
-              >
-                {t(m.labelKey)}
-              </Text>
-            ))}
-          </View>
-          {suggestions.length > 0 && (
-            <>
-              <Text style={st.suggTitle}>{t('train.suggested')}</Text>
-              {suggestions.map((sug) => {
-                const added = rows.some((r) => r.ex === sug.ex);
-                return (
-                  <View key={sug.ex} style={st.suggRow}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={st.suggEx}>{sug.ex}</Text>
-                      <Text style={st.suggMuscle}>{t(('muscle.' + sug.muscle) as any)}</Text>
-                    </View>
-                    <Text
-                      onPress={() => !added && addSuggested(sug.ex)}
-                      style={[st.suggAdd, added && st.suggAdded]}
-                    >
-                      {added ? '\u2713 ' + t('train.added') : '+ ' + t('train.add')}
-                    </Text>
-                  </View>
-                );
-              })}
-              <Muted>{t('train.suggestedNote')}</Muted>
-            </>
-          )}
-        </Card>
 
         <SportSession />
         <CardioCheckin onSaved={() => adh.refresh()} />

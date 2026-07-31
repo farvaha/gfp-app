@@ -176,6 +176,7 @@ function NearbyFitness() {
 
 /** Notifications — GET/PUT /companion/notifications/prefs */
 function NotificationPrefs() {
+  const { t } = useLocale();
   const [p, setP] = useState<any>(null);
   const [busy, setBusy] = useState(false);
 

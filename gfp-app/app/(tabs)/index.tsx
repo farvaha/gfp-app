@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
   body: { padding: 14, gap: 12 },
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
   scorePill: {
-    backgroundColor: 'rgba(91,158,143,0.15)',
+    backgroundColor: 'rgba(21,194,165,0.12)',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: R.pill,
