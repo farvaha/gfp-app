@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useLocale } from '../src/i18n/locale';
 import { C, F } from '../constants/gfp';
 
 // The coach endpoints return structured objects (headline, summary, wins,
@@ -50,8 +51,9 @@ function Section({ title, items, accent }: { title: string; items: string[]; acc
 }
 
 export function AiSummary({ data, emptyText }: { data: any; emptyText?: string }) {
+  const { t } = useLocale();
   const d = parseSummary(data);
-  const fallback = emptyText || 'Nothing to show yet.';
+  const fallback = emptyText || t('misc.nothingYet');
   if (!d) return <Text style={s.muted}>{fallback}</Text>;
 
   const headline = typeof d.headline === 'string' ? d.headline : '';

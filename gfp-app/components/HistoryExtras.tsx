@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import * as Location from 'expo-location';
+import { useLocale } from '../src/i18n/locale';
 import { Card, H2, Muted, Btn } from './ui';
 import { PlanBody } from './PlanBody';
 import { useCached } from '../src/hooks/useCached';
@@ -29,6 +30,7 @@ export function FullPlanCard() {
  *  coordinates, so we ask the device for a fix rather than sending free text -
  *  the old town-name box was ignored by the API, which is why it never worked. */
 export function NearbyPlaces() {
+  const { t } = useLocale();
   const [kind, setKind] = useState<'gym' | 'store'>('gym');
   const [items, setItems] = useState<any[] | null>(null);
   const [busy, setBusy] = useState(false);
@@ -42,7 +44,7 @@ export function NearbyPlaces() {
     try {
       const perm = await Location.requestForegroundPermissionsAsync();
       if (!perm.granted) {
-        setMsg('Allow location access to find places near you.');
+        setMsg(t('nearby.allowLocation'));
         return;
       }
       const pos = await Location.getCurrentPositionAsync({});
@@ -52,14 +54,14 @@ export function NearbyPlaces() {
         kind: which,
       });
       if (r && r.enabled === false) {
-        setMsg('Nearby search is not switched on for this site yet.');
+        setMsg(t('nearby.notEnabled'));
         return;
       }
       const list = Array.isArray(r?.places) ? r.places : [];
       setItems(list);
-      if (list.length === 0) setMsg('Nothing found near you.');
+      if (list.length === 0) setMsg(t('nearby.nothingNear'));
     } catch (e: any) {
-      setMsg(e?.message || 'Could not search right now.');
+      setMsg(e?.message || t('common.tryAgain'));
     } finally {
       setBusy(false);
     }
@@ -101,6 +103,7 @@ export function NearbyPlaces() {
 }
 
 export function WorkoutDetail({ date }: { date?: string | null }) {
+  const { t } = useLocale();
   const [sets, setSets] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(false);
 
