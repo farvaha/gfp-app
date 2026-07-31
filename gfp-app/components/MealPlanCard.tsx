@@ -2,7 +2,8 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useLocale } from '../src/i18n/locale';
 import { Card, H2, Muted } from './ui';
-import { buildMealPlan, mealSummary, MacroSet } from '../src/lib/meals';
+import { buildMealPlan, MacroSet } from '../src/lib/meals';
+import { trMealName, trMealTime, trMealNote, trFoodLine, trMealSummary } from '../src/i18n/food';
 import { C, F, R } from '../constants/gfp';
 
 // Shows the full eating plan: how many meals, when to eat them, the macro
@@ -22,33 +23,29 @@ export function MealPlanCard({
   compact?: boolean;
 }) {
   const { t } = useLocale();
-  const mealName = (n: string) => {
-    const key = 'meal.' + String(n || '').toLowerCase().replace(/[^a-z]/g, '');
-    const tr = t(key);
-    return tr === key ? n : tr;
-  };
+  const mealName = (n: string) => trMealName(n);
   const plan = buildMealPlan(targets, meals, { diet });
   if (!plan.length) return null;
 
   return (
     <Card>
-      <H2>{title || 'Your meals'}</H2>
-      <Muted>{mealSummary(targets, plan.length)}</Muted>
+      <H2>{title || t('plan.yourMeals')}</H2>
+      <Muted>{trMealSummary(plan.length, Math.round((targets.kcal || 0) / plan.length), Math.round((targets.protein || 0) / plan.length))}</Muted>
       {plan.map((m, i) => (
         <View key={i} style={s.meal}>
           <View style={s.head}>
             <Text style={s.name}>{mealName(m.name)}</Text>
-            <Text style={s.time}>{m.time}</Text>
+            <Text style={s.time}>{trMealTime(m.time)}</Text>
           </View>
           <Text style={s.macros}>
-            {m.kcal} kcal - {m.protein} g protein - {m.carbs} g carbs - {m.fat} g fat
+            {m.kcal} kcal - {m.protein} g {t('macro.protein').toLowerCase()} - {m.carbs} g {t('macro.carbs').toLowerCase()} - {m.fat} g {t('macro.fat').toLowerCase()}
           </Text>
           {!compact && (
             <>
               {m.foods.map((f, j) => (
-                <Text key={j} style={s.food}>- {f}</Text>
+                <Text key={j} style={s.food}>- {trFoodLine(f)}</Text>
               ))}
-              <Text style={s.note}>{m.note}</Text>
+              <Text style={s.note}>{trMealNote(m.note)}</Text>
             </>
           )}
         </View>

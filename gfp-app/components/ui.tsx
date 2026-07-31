@@ -27,8 +27,8 @@ export function H2({ children }: { children: React.ReactNode }) {
   return <Text style={s.h2}>{children}</Text>;
 }
 
-export function Muted({ children }: { children: React.ReactNode }) {
-  return <Text style={s.muted}>{children}</Text>;
+export function Muted({ children, style }: { children: React.ReactNode; style?: any }) {
+  return <Text style={[s.muted, style]}>{children}</Text>;
 }
 
 export function Btn({

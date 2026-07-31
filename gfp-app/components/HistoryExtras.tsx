@@ -12,14 +12,15 @@ import { C, F } from '../constants/gfp';
 /** The full Build My Plan report - the same content as the PDF - rendered
  *  natively from GET /companion/plan instead of being hidden behind a link. */
 export function FullPlanCard() {
+  const { t } = useLocale();
   const plan = useCached<any>('plan-full', EP.plan);
   const text = typeof plan.data?.plan === 'string' ? plan.data.plan : '';
   return (
     <Card>
-      <H2>Your full plan</H2>
-      {!text && plan.refreshing && <Muted>Loading your plan...</Muted>}
+      <H2>{t('plan.fullPlan')}</H2>
+      {!text && plan.refreshing && <Muted>{t('plan.loadingPlan')}</Muted>}
       {!text && !plan.refreshing && (
-        <Muted>Build your plan and the full report appears here.</Muted>
+        <Muted>{t('plan.buildHint')}</Muted>
       )}
       {!!text && <PlanBody text={text} />}
     </Card>
@@ -69,17 +70,17 @@ export function NearbyPlaces() {
 
   return (
     <Card>
-      <H2>Nearby gyms and supplement stores</H2>
-      <Muted>Uses your current location to find places close by.</Muted>
+      <H2>{t('history.nearby')}</H2>
+      <Muted>{t('history.nearbyHint')}</Muted>
       <View style={s.row}>
         <Btn
-          label="Find gyms"
+          label={t('nearby.findGyms')}
           onPress={() => run('gym')}
           loading={busy && kind === 'gym'}
           style={{ flex: 1 }}
         />
         <Btn
-          label="Supplement stores"
+          label={t('nearby.stores')}
           kind="ghost"
           onPress={() => run('store')}
           loading={busy && kind === 'store'}
@@ -136,9 +137,9 @@ export function WorkoutDetail({ date }: { date?: string | null }) {
 
   return (
     <Card>
-      <H2>Exercises this day</H2>
-      {loading && !sets && <Muted>Loading...</Muted>}
-      {!!sets && groups.length === 0 && <Muted>No exercises logged this day.</Muted>}
+      <H2>{t('history.exercisesDay')}</H2>
+      {loading && !sets && <Muted>{t('history.loading')}</Muted>}
+      {!!sets && groups.length === 0 && <Muted>{t('history.nothingDay')}</Muted>}
       {groups.map((g, i) => (
         <View key={i} style={s.exBlock}>
           <Text style={s.exName}>{g.ex}</Text>
@@ -165,4 +166,43 @@ const s = StyleSheet.create({
   exName: { color: C.ink, fontFamily: F.bodySemi, fontSize: 13, marginBottom: 4 },
   setLine: { color: C.muted, fontFamily: F.body, fontSize: 12, lineHeight: 19 },
   meta: { color: C.muted, fontFamily: F.body, fontSize: 11, marginTop: 2 },
+});
+
+/** Supplements taken on a given day — GET /companion/supplements?date= */
+export function SupplementsDay({ date }: { date?: string | null }) {
+  const { t } = useLocale();
+  const [items, setItems] = useState<any[] | null>(null);
+
+  useEffect(() => {
+    if (!date) return;
+    let alive = true;
+    Api.supplements(date)
+      .then((r: any) => {
+        if (alive) setItems(Array.isArray(r?.items) ? r.items : []);
+      })
+      .catch(() => alive && setItems([]));
+    return () => {
+      alive = false;
+    };
+  }, [date]);
+
+  if (!date) return null;
+
+  return (
+    <Card>
+      <H2>{t('supp.forDay')}</H2>
+      {items === null && <Muted>{t('history.loading')}</Muted>}
+      {!!items && items.length === 0 && <Muted>{t('supp.empty')}</Muted>}
+      {(items ?? []).map((it: any, i: number) => (
+        <Text key={i} style={suppSt.line}>
+          • {String(it.name || '')}
+          {it.dose ? ` — ${it.dose}` : ''}
+        </Text>
+      ))}
+    </Card>
+  );
+}
+
+const suppSt = StyleSheet.create({
+  line: { color: C.ink, fontFamily: F.body, fontSize: 13, lineHeight: 21, marginTop: 4 },
 });

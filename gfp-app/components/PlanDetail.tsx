@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useLocale } from '../src/i18n/locale';
+import { fmt, trDayName, trGoal, trProtocol } from '../src/i18n/food';
 import { Card, H2, Muted, Chip } from './ui';
 import { macroTargets } from '../src/lib/macros'; import { MealPlanCard } from './MealPlanCard';
 import { C, F, R } from '../constants/gfp';
@@ -42,11 +43,11 @@ export function PlanDetail({ protocol }: { protocol: any }) {
         <Card>
           <View style={s.rowBetween}>
             <H2>{t('plan.split')}</H2>
-            <Chip label={`${split.length} days`} />
+            <Chip label={fmt(t('plan.daysCount'), { n: split.length })} />
           </View>
           {split.map((d, i) => (
             <View key={i} style={s.day}>
-              <Text style={s.dayName}>{d.name || `Day ${i + 1}`}</Text>
+              <Text style={s.dayName}>{d.name ? trDayName(d.name) : `Day ${i + 1}`}</Text>
               {(Array.isArray(d.ex) ? d.ex : []).map((e, j) => (
                 <View key={j} style={s.exRow}>
                   <Text style={s.exName}>{e.n || 'Exercise'}</Text>
@@ -61,27 +62,27 @@ export function PlanDetail({ protocol }: { protocol: any }) {
       <Card>
         <H2>{t('plan.nutriStructure')}</H2>
         <View style={s.line}>
-          <Text style={s.lineLabel}>Goal</Text>
-          <Text style={s.lineValue}>{c.goal || '-'}</Text>
+          <Text style={s.lineLabel}>{t('plan.goal')}</Text>
+          <Text style={s.lineValue}>{c.goal ? trGoal(String(c.goal)) : '-'}</Text>
         </View>
         <View style={s.line}>
-          <Text style={s.lineLabel}>Meals per day</Text>
+          <Text style={s.lineLabel}>{t('plan.mealsPerDay')}</Text>
           <Text style={s.lineValue}>{c.meals_count ?? '-'}</Text>
         </View>
         {!!c.meals_count && kcal > 0 && (
           <View style={s.line}>
-            <Text style={s.lineLabel}>Per meal (recommended)</Text>
-            <Text style={s.lineValue}>{`~${Math.round(kcal / c.meals_count)} kcal, ${Math.round(macros.protein / c.meals_count)}g protein`}</Text>
+            <Text style={s.lineLabel}>{t('plan.perMealRec')}</Text>
+            <Text style={s.lineValue}>{fmt(t('plan.perMealVal'), { kcal: Math.round(kcal / c.meals_count), p: Math.round(macros.protein / c.meals_count) })}</Text>
           </View>
         )}
         <View style={s.line}>
-          <Text style={s.lineLabel}>Training days / week</Text>
+          <Text style={s.lineLabel}>{t('plan.trainingDaysWeek')}</Text>
           <Text style={s.lineValue}>{c.training_days ?? split.length}</Text>
         </View>
         {!!protocol?.protocol_path && (
           <View style={s.line}>
-            <Text style={s.lineLabel}>Protocol</Text>
-            <Text style={s.lineValue}>{String(protocol.protocol_path)}</Text>
+            <Text style={s.lineLabel}>{t('plan.protocol')}</Text>
+            <Text style={s.lineValue}>{trProtocol(String(protocol.protocol_path))}</Text>
           </View>
         )}
       </Card>
