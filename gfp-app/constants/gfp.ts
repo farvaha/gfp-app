@@ -1,16 +1,15 @@
 // GetFitPlans brand tokens - single source of truth for the app UI.
-// MATTE edition: flat, desaturated tones - no neon, no gloss.
 export const C = {
-  bg: '#16191D',
-  card: '#1D2126',
-  card2: '#242930',
-  orange: '#C9714D',        // matte terracotta (was neon orange)
-  orangeLight: '#D68F6F',
-  mint: '#5B9E8F',          // matte sage (was bright mint)
-  ink: '#E4E8EC',
-  muted: '#8D96A1',
-  line: 'rgba(141,150,161,0.15)',
-  danger: '#C96A6A',
+  bg: '#14181C',
+  card: '#1A1F25',
+  card2: '#20262E',
+  orange: '#FF6A2B',
+  orangeLight: '#FF8A5B',
+  mint: '#15C2A5',
+  ink: '#e8edf3',
+  muted: '#8b96a5',
+  line: 'rgba(139,150,165,0.16)',
+  danger: '#ff5c5c',
 };
 
 export const F = {
