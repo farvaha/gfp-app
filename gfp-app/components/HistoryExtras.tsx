@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import * as Location from 'expo-location';
 import { useLocale } from '../src/i18n/locale';
 import { Card, H2, Muted, Btn } from './ui';
@@ -36,6 +36,35 @@ export function NearbyPlaces() {
   const [items, setItems] = useState<any[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string>('');
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+
+  // Opens the phone's Maps app with a live search - the same results the
+  // website's Nearby card shows via its Google Maps embed.
+  const openMaps = useCallback(async (which: 'gym' | 'store', name?: string) => {
+    const q = name || (which === 'store' ? 'supplement store' : 'gym');
+    let c = coords;
+    if (!c) {
+      try {
+        const perm = await Location.requestForegroundPermissionsAsync();
+        if (perm.granted) {
+          const pos = await Location.getCurrentPositionAsync({});
+          c = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          setCoords(c);
+        }
+      } catch {}
+    }
+    const geo = c
+      ? `geo:${c.lat},${c.lng}?q=${encodeURIComponent(q)}`
+      : `geo:0,0?q=${encodeURIComponent(q)}`;
+    const web = c
+      ? `https://www.google.com/maps/search/${encodeURIComponent(q)}/@${c.lat},${c.lng},14z`
+      : `https://www.google.com/maps/search/${encodeURIComponent(q)}`;
+    try {
+      await Linking.openURL(geo);
+    } catch {
+      try { await Linking.openURL(web); } catch {}
+    }
+  }, [coords]);
 
   const run = useCallback(async (which: 'gym' | 'store') => {
     setKind(which);
@@ -49,6 +78,7 @@ export function NearbyPlaces() {
         return;
       }
       const pos = await Location.getCurrentPositionAsync({});
+      setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
       const r = await Api.places({
         lat: pos.coords.latitude,
         lng: pos.coords.longitude,
@@ -89,7 +119,7 @@ export function NearbyPlaces() {
       </View>
       {!!msg && <Muted>{msg}</Muted>}
       {(items ?? []).slice(0, 10).map((p: any, i: number) => (
-        <View key={i} style={s.item}>
+        <TouchableOpacity key={i} style={s.item} onPress={() => openMaps(kind, String(p.name || p.title || ''))}>
           <Text style={s.name}>{p.name || p.title || 'Place'}</Text>
           {(!!p.address || !!p.rating) && (
             <Text style={s.meta}>
@@ -97,8 +127,15 @@ export function NearbyPlaces() {
               {p.rating ? (p.address ? ' - ' : '') + String(p.rating) : ''}
             </Text>
           )}
-        </View>
+        </TouchableOpacity>
       ))}
+      <Btn
+        label={t('nearby.openMaps')}
+        kind="ghost"
+        onPress={() => openMaps(kind)}
+        style={{ marginTop: 10 }}
+      />
+      <Muted>{t('nearby.mapsHint')}</Muted>
     </Card>
   );
 }
