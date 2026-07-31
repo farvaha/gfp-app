@@ -7,6 +7,8 @@ import { Api } from '../../src/api/client';
 import { EP } from '../../src/api/endpoints';
 import { C, F, R } from '../../constants/gfp';
 import { useLocale } from '../../src/i18n/locale';
+import { trDayName } from '../../src/i18n/food';
+import { translateCoach } from '../../src/i18n/coach';
 import { MUSCLES, MuscleKey, suggestionsFor } from '../../src/lib/muscles';
 
 /** One editable set row: reps + weight, exactly like the web app. */
@@ -140,8 +142,15 @@ export default function TrainScreen() {
 
   async function save(status: 'in_progress' | 'completed') {
     setBusy(true);
+    // Completing the workout marks every set with reps as done - users fill
+    // reps/kg but rarely tick each set, which left adherence at 0/12.
+    const rowsFinal =
+      status === 'completed'
+        ? rows.map((r) => ({ ...r, done: r.done || (parseInt(String(r.reps), 10) || 0) > 0 }))
+        : rows;
+    if (status === 'completed') setRows(rowsFinal);
     try {
-      const sets = rows.map((r) => {
+      const sets = rowsFinal.map((r) => {
         // The server's end-of-day analysis sums `weight_kg * reps` per set —
         // it reads the keys `weight_kg` and `reps` (numeric). Sending only
         // `kg` is why History showed "0 kg volume" for logged workouts.
@@ -158,9 +167,9 @@ export default function TrainScreen() {
       });
       // Roll up totals so server-side analysis (volume, top weight) matches
       // what was actually logged - this is what History and the daily analysis read.
-      const total_sets = rows.filter((r) => r.done).length;
-      const top_weight_kg = rows.reduce((m, r) => Math.max(m, Number(r.kg) || 0), 0);
-      const main_lift = rows[0] ? rows[0].ex : undefined;
+      const total_sets = rowsFinal.filter((r) => r.done).length;
+      const top_weight_kg = rowsFinal.reduce((m, r) => Math.max(m, Number(r.kg) || 0), 0);
+      const main_lift = rowsFinal[0] ? rowsFinal[0].ex : undefined;
       const extras = { total_sets, top_weight_kg, main_lift };
       if (loggedId) {
         await Api.patchWorkout(loggedId, { sets, status, ...extras });
@@ -189,7 +198,7 @@ export default function TrainScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <AppHeader title={t('tab.train')} subtitle={day?.name} />
+      <AppHeader title={t('tab.train')} subtitle={day?.name ? trDayName(day.name) : undefined} />
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={'padding'}>
       <ScrollView
@@ -213,7 +222,7 @@ export default function TrainScreen() {
             <H2>{t('train.adherence')}</H2>
             <Chip label={`${adh.data?.score_pct ?? 0}%`} />
           </View>
-          <Muted>{adh.data?.coach_message || t('train.logHint')}</Muted>
+          <Muted>{adh.data?.coach_message ? translateCoach(String(adh.data.coach_message)) : t('train.logHint')}</Muted>
         </Card>
 
         {/* Planned days */}
@@ -226,7 +235,7 @@ export default function TrainScreen() {
                   onPress={() => setDayIdx(i)}
                   style={[st.dayChip, i === dayIdx && st.dayChipOn]}
                 >
-                  {d.name}
+                  {trDayName(d.name)}
                 </Text>
               ))}
             </ScrollView>
@@ -475,11 +484,11 @@ function CardioCheckin({ onSaved }: { onSaved: () => void }) {
 
   return (
     <Card>
-      <H2>Cardio check-in</H2>
-      <Muted>Bodyweight and cardio minutes for today.</Muted>
+      <H2>{t('train.cardio')}</H2>
+      <Muted>{t('train.cardioHint')}</Muted>
       <View style={st.pair}>
-        <TextInput value={kg} onChangeText={setKg} placeholder="Weight (kg)" placeholderTextColor={C.muted} keyboardType="numeric" style={[st.input, st.flex]} />
-        <TextInput value={cardio} onChangeText={setCardio} placeholder="Cardio (min)" placeholderTextColor={C.muted} keyboardType="number-pad" style={[st.input, st.flex]} />
+        <TextInput value={kg} onChangeText={setKg} placeholder={t('train.weightKg')} placeholderTextColor={C.muted} keyboardType="numeric" style={[st.input, st.flex]} />
+        <TextInput value={cardio} onChangeText={setCardio} placeholder={t('train.cardioMin')} placeholderTextColor={C.muted} keyboardType="number-pad" style={[st.input, st.flex]} />
       </View>
       <Btn label={busy ? t('common.pleaseWait') : t('common.save')} onPress={save} loading={busy} style={{ marginTop: 10 }} />
     </Card>

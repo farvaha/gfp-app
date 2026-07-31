@@ -13,6 +13,8 @@ import { Api } from '../../src/api/client';
 import { EP } from '../../src/api/endpoints';
 import { macroTargets } from '../../src/lib/macros';
 import { MealPlanCard } from '../../components/MealPlanCard';
+import { SupplementLog } from '../../components/SupplementLog';
+import { fmt } from '../../src/i18n/food';
 import { C, F, R } from '../../constants/gfp';
 
 export default function TodayScreen() {
@@ -28,7 +30,8 @@ export default function TodayScreen() {
   const prot = useCached<any>('active-protocol', EP.activeProtocol);
   const meals = useCached<any>('meals-today', EP.meals);
   const adh = useCached<any>('adherence-today', EP.adherenceToday);
-  const review = useCached<any>('weekly-review', EP.weeklyReview);
+  const lang = require('../../src/i18n/locale').getLocale();
+  const review = useCached<any>('weekly-review-' + lang, EP.weeklyReview + (lang !== 'en' ? `?lang=${lang}` : ''));
 
   const refreshing = prot.refreshing || meals.refreshing;
   const refreshAll = () => {
@@ -153,7 +156,7 @@ export default function TodayScreen() {
                   <Text style={styles.proteinOf}> / {targets.protein} g</Text>
                 </Text>
                 <Text style={styles.proteinLabel}>
-                  {proteinLeft > 0 ? `${proteinLeft} g protein to go` : 'Protein target hit 💪'}
+                  {proteinLeft > 0 ? fmt(t('today.proteinToGo'), { n: proteinLeft }) : t('today.proteinHit')}
                 </Text>
               </View>
 
@@ -254,11 +257,13 @@ export default function TodayScreen() {
           ) : (
             <Muted>
               {review.data?.week_start
-                ? 'Not enough logged this week yet — keep logging and your review appears here.'
-                : 'Your weekly review will appear here.'}
+                ? t('today.reviewNotEnough')
+                : t('today.reviewWillAppear')}
             </Muted>
           )}
         </Card>
+
+        <SupplementLog />
 
         <View style={{ height: 24 }} />
       </ScrollView>

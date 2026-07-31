@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useLocale } from '../../src/i18n/locale';
+import { fmt, trGoal } from '../../src/i18n/food';
 import { Card, H2, Muted, Btn, Chip } from '../../components/ui';
 import { PlanBody } from '../../components/PlanBody';
 import { PlanDetail } from '../../components/PlanDetail';
@@ -41,17 +42,17 @@ export default function PlanScreen() {
         }
       >
         <Card>
-          <H2>{c ? 'Your current plan' : 'No plan yet'}</H2>
+          <H2>{c ? t('plan.currentPlan') : t('plan.noPlanYet')}</H2>
           {c ? (
             <>
               <Text style={st.kcal}>
                 {c.target_kcal}
-                <Text style={st.unit}> kcal / day</Text>
+                <Text style={st.unit}> {t('plan.kcalPerDay')}</Text>
               </Text>
               <View style={st.chips}>
-                <Chip label={c.goal} />
-                <Chip label={`${c.meals_count} meals`} />
-                <Chip label={`${c.training_days} training days`} />
+                <Chip label={trGoal(String(c.goal || ''))} />
+                <Chip label={fmt(t('plan.mealsChip'), { n: c.meals_count })} />
+                <Chip label={fmt(t('plan.trainingDaysChip'), { n: c.training_days })} />
               </View>
             </>
           ) : (
@@ -59,7 +60,7 @@ export default function PlanScreen() {
           )}
 
           <Btn
-            label={c ? 'Update my plan' : 'Build my plan - free'}
+            label={c ? t('plan.updatePlan') : t('plan.buildFree')}
             onPress={() => router.push('/quiz')}
             style={{ marginTop: 16 }}
           />
@@ -74,7 +75,7 @@ export default function PlanScreen() {
             <View style={st.rowBetween}>
               <H2>{t('plan.fullNotes')}</H2>
               <Btn
-                label={showFull ? 'Hide' : 'Show'}
+                label={showFull ? t('common.hide') : t('common.show')}
                 kind="ghost"
                 onPress={() => setShowFull((v) => !v)}
               />

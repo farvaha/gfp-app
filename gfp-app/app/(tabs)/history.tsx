@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { Card, H2, Muted, Btn, Chip } from '../../components/ui';
-import { AppHeader } from '../../components/AppHeader'; import { formatCoach } from '../../src/lib/coachText'; import { FullPlanCard, NearbyPlaces, WorkoutDetail } from '../../components/HistoryExtras';
+import { AppHeader } from '../../components/AppHeader'; import { formatCoach } from '../../src/lib/coachText'; import { FullPlanCard, NearbyPlaces, WorkoutDetail, SupplementsDay } from '../../components/HistoryExtras';
 import { useCached } from '../../src/hooks/useCached';
 import { Api } from '../../src/api/client';
 import { EP } from '../../src/api/endpoints';
 import { C, F, R } from '../../constants/gfp';
 import { useLocale } from '../../src/i18n/locale';
+import { translateCoach } from '../../src/i18n/coach';
 
 export default function HistoryScreen() {
   const { t } = useLocale();
@@ -75,7 +76,7 @@ export default function HistoryScreen() {
             <Muted>{t('history.nothingDay')}</Muted>
           ) : (
             <>
-              <Text style={st.sub}>Meals ({meals?.length ?? 0})</Text>
+              <Text style={st.sub}>{t('today.meals')} ({meals?.length ?? 0})</Text>
               {(meals ?? []).length === 0 ? (
                 <Muted>{t('history.noMeals')}</Muted>
               ) : (
@@ -86,7 +87,7 @@ export default function HistoryScreen() {
                 ))
               )}
 
-              <Text style={st.sub}>Workouts ({workouts?.length ?? 0})</Text>
+              <Text style={st.sub}>{t('history.workouts')} ({workouts?.length ?? 0})</Text>
               {(workouts ?? []).length === 0 ? (
                 <Muted>{t('history.noWorkout')}</Muted>
               ) : (
@@ -99,7 +100,7 @@ export default function HistoryScreen() {
 
               {!!day.checkin && (
                 <>
-                  <Text style={st.sub}>Check-in</Text>
+                  <Text style={st.sub}>{t('history.checkin')}</Text>
                   <Text style={st.line}>
                     • {day.checkin.bodyweight_kg ? `${day.checkin.bodyweight_kg} kg` : '—'}
                     {day.checkin.cardio_minutes ? ` · ${day.checkin.cardio_minutes} min cardio` : ''}
@@ -115,14 +116,14 @@ export default function HistoryScreen() {
           <H2>{t('today.review')}</H2>
           {analysis ? (
             <Text style={st.analysis}>
-              {formatCoach(analysis)}
+              {translateCoach(formatCoach(analysis))}
             </Text>
           ) : (
             <Muted>{t('history.analysisHint')}</Muted>
           )}
         </Card>
 
-        <WorkoutDetail date={active} /><FullPlanCard /><NearbyPlaces />
+        <WorkoutDetail date={active} /><SupplementsDay date={active} /><FullPlanCard /><NearbyPlaces />
         <NotificationPrefs />
 
         <View style={{ height: 24 }} />

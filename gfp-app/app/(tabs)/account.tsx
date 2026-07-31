@@ -65,7 +65,7 @@ export default function AccountScreen() {
 
   const b = billing.data;
   const status = String(b?.status || '');
-  const statusKey: Record<string,string> = { none: 'acct.none', trial: 'acct.trial', active: 'acct.active', expired: 'acct.expired', cancelled: 'acct.expired' };
+  const statusKey: Record<string,string> = { none: 'acct.none', trial: 'acct.trial', active: 'acct.active', expired: 'acct.expired', cancelled: 'acct.expired', comped: 'acct.comped' };
   const statusLabel = statusKey[status] ? t(statusKey[status]) : (status || '?');
   const statusColor = STATUS_COLOR[status] || C.muted;
   const hasAccess = !!b?.has_access;
@@ -214,7 +214,7 @@ function ShopCard({ openExternal }: { openExternal: (u?: string | null) => void 
           <Btn label={t('acct.buy')} kind="mint" onPress={() => openExternal(p.permalink)} />
         </View>
       ))}
-      <Text style={st.shopHint}>Checkout completes securely in your browser.</Text>
+      <Text style={st.shopHint}>{t('acct.checkoutNote')}</Text>
       <Btn label={t('acct.orders')} kind="ghost" onPress={() => openExternal(WEB.orders)} style={{ marginTop: 8 }} />
     </Card>
   );
