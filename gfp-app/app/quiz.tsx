@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useLocale } from '../src/i18n/locale';
 import { Card, H2, Muted, Btn, Chip } from '../components/ui';
 import { Api } from '../src/api/client';
 import { computeTargetKcal } from '../src/lib/builder';
@@ -25,7 +26,7 @@ import { C, F, R } from '../constants/gfp';
 // flat fields without `computed`, which the server rejects with 400 -
 // that was the 'Could not save your plan' bug.
 
-const STEPS = ['Protocol', 'Goal', 'Body', 'Activity', 'Training', 'Nutrition', 'Your plan'];
+const STEP_KEYS = ['quiz.protocol', 'quiz.goal', 'quiz.body', 'quiz.activity', 'quiz.training', 'plan.nutrition', 'quiz.yourPlan'];
 
 function Opts({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: [string, string][] }) {
   return (
@@ -52,6 +53,7 @@ function Num({ label, value, onChange, unit }: { label: string; value: string; o
 }
 
 export default function Quiz() {
+  const { t } = useLocale();
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -113,28 +115,28 @@ export default function Quiz() {
           split,
         },
       });
-      Alert.alert('Plan saved', 'Your new plan is live.');
+      Alert.alert(t('quiz.planSaved'), t('quiz.planLive'));
       router.replace('/(tabs)/plan');
     } catch (e: any) {
-      Alert.alert('Could not save your plan', String(e?.message || 'Please try again.'));
+      Alert.alert(t('quiz.saveFail'), String(e?.message || ''));
     } finally {
       setSaving(false);
     }
   }
 
-  const canNext = step < STEPS.length - 1;
+  const canNext = step < STEP_KEYS.length - 1;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={['top', 'bottom']}>
       <View style={s.bar}>
         <Text onPress={() => (step === 0 ? router.back() : setStep(step - 1))} style={s.back}>
-          {step === 0 ? 'Close' : 'Back'}
+          {step === 0 ? t('common.cancel') : t('common.back')}
         </Text>
-        <Text style={s.barTitle}>{STEPS[step]}</Text>
+        <Text style={s.barTitle}>{t(STEP_KEYS[step])}</Text>
         <View style={{ width: 44 }} />
       </View>
       <View style={s.dots}>
-        {STEPS.map((_, i) => (
+        {STEP_KEYS.map((_, i) => (
           <View key={i} style={[s.dot, i <= step && s.dotOn]} />
         ))}
       </View>
@@ -149,9 +151,9 @@ export default function Quiz() {
                 value={protocol}
                 onChange={setProtocol}
                 options={[
-                  ['general', 'General fitness'],
-                  ['calisthenics', 'Calisthenics & Aesthetics'],
-                  ['comp', 'Competition prep'],
+                  ['general', t('quiz.general')],
+                  ['calisthenics', t('quiz.calisthenics')],
+                  ['comp', t('quiz.comp')],
                 ]}
               />
               {protocol === 'calisthenics' && (
@@ -161,9 +163,9 @@ export default function Quiz() {
                     value={caliFocus}
                     onChange={setCaliFocus}
                     options={[
-                      ['skills', 'Skills'],
-                      ['aesthetics', 'Aesthetics'],
-                      ['both', 'Both'],
+                      ['skills', t('quiz.skills')],
+                      ['aesthetics', t('quiz.aesthetics')],
+                      ['both', t('quiz.both')],
                     ]}
                   />
                 </>
@@ -181,10 +183,10 @@ export default function Quiz() {
                 value={goal}
                 onChange={setGoal}
                 options={[
-                  ['lose', 'Lose fat'],
-                  ['maintain', 'Maintain'],
-                  ['gain', 'Build muscle'],
-                  ['weight_gain', 'Gain weight'],
+                  ['lose', t('quiz.loseFat')],
+                  ['maintain', t('quiz.maintain')],
+                  ['gain', t('quiz.buildMuscle')],
+                  ['weight_gain', t('quiz.gainWeight')],
                 ]}
               />
             </Card>
@@ -193,10 +195,10 @@ export default function Quiz() {
           {step === 2 && (
             <Card>
               <H2>About you</H2>
-              <Opts value={sex} onChange={setSex} options={[['male', 'Male'], ['female', 'Female']]} />
-              <Num label="Age" value={age} onChange={setAge} unit="yrs" />
-              <Num label="Height" value={height} onChange={setHeight} unit="cm" />
-              <Num label="Weight" value={weight} onChange={setWeight} unit="kg" />
+              <Opts value={sex} onChange={setSex} options={[['male', t('quiz.male')], ['female', t('quiz.female')]]} />
+              <Num label={t('quiz.age')} value={age} onChange={setAge} unit="yrs" />
+              <Num label={t('quiz.height')} value={height} onChange={setHeight} unit="cm" />
+              <Num label={t('quiz.weight')} value={weight} onChange={setWeight} unit="kg" />
             </Card>
           )}
 
@@ -207,10 +209,10 @@ export default function Quiz() {
                 value={activity}
                 onChange={setActivity}
                 options={[
-                  ['1.2', 'Mostly sitting'],
-                  ['1.375', 'Lightly active'],
-                  ['1.55', 'Active'],
-                  ['1.725', 'Very active'],
+                  ['1.2', t('quiz.sitting')],
+                  ['1.375', t('quiz.light')],
+                  ['1.55', t('quiz.active')],
+                  ['1.725', t('quiz.veryActive')],
                 ]}
               />
             </Card>
@@ -232,12 +234,12 @@ export default function Quiz() {
                 options={[
                   ['ppl', 'Push / Pull / Legs'],
                   ['upper_lower', 'Upper / Lower'],
-                  ['full_body', 'Full body'],
-                  ['bro', 'Body-part split'],
+                  ['full_body', t('quiz.fullBody')],
+                  ['bro', t('quiz.bro')],
                 ]}
               />
               <Text style={s.sub}>Equipment</Text>
-              <Opts value={equip} onChange={setEquip} options={[['gym', 'Gym'], ['home', 'Home'], ['bodyweight', 'Bodyweight']]} />
+              <Opts value={equip} onChange={setEquip} options={[['gym', t('quiz.gym')], ['home', t('quiz.home')], ['bodyweight', t('quiz.bodyweight')]]} />
                 </>
               )}
               {protocol === 'comp' && (
@@ -254,10 +256,10 @@ export default function Quiz() {
                 value={diet}
                 onChange={setDiet}
                 options={[
-                  ['none', 'No restriction'],
-                  ['veg', 'Vegetarian'],
-                  ['vegan', 'Vegan'],
-                  ['halal', 'Halal'],
+                  ['none', t('quiz.noRestriction')],
+                  ['veg', t('quiz.veg')],
+                  ['vegan', t('quiz.vegan')],
+                  ['halal', t('quiz.halal')],
                 ]}
               />
               <Text style={s.sub}>Allergies (optional)</Text>
@@ -303,7 +305,7 @@ export default function Quiz() {
                   </View>
                 ))}
               </Card>
-              <Btn label={saving ? 'Saving...' : 'Save my plan'} loading={saving} onPress={save} />
+              <Btn label={saving ? t('common.pleaseWait') : t('quiz.savePlan')} loading={saving} onPress={save} />
             </>
           )}
 
