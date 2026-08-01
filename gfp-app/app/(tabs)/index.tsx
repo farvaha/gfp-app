@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useLocale } from '../../src/i18n/locale';
@@ -14,6 +14,7 @@ import { EP } from '../../src/api/endpoints';
 import { macroTargets } from '../../src/lib/macros';
 import { MealPlanCard } from '../../components/MealPlanCard';
 import { SupplementLog } from '../../components/SupplementLog';
+import { SwipeTabs } from '../../components/SwipeTabs';
 import { fmt } from '../../src/i18n/food';
 import { C, F, R } from '../../constants/gfp';
 
@@ -130,9 +131,10 @@ export default function TodayScreen() {
   const ai = review.data?.ai_review;
 
   return (
-    <View style={{ flex: 1, backgroundColor: C.bg }}>
+    <SwipeTabs style={{ backgroundColor: C.bg }}>
       <AppHeader title={t('tab.today')} subtitle={prot.data?.computed?.goal ?? undefined} />
 
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={'padding'}>
       <ScrollView
         contentContainerStyle={styles.body}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshAll} tintColor={C.muted} />}
@@ -267,6 +269,7 @@ export default function TodayScreen() {
 
         <View style={{ height: 24 }} />
       </ScrollView>
+      </KeyboardAvoidingView>
 
       <PhotoMealSheet
         visible={!!estimate}
@@ -290,7 +293,7 @@ export default function TodayScreen() {
       >
         <Text style={styles.fabTxt}>{'\u270d'}</Text>
       </Pressable>
-    </View>
+    </SwipeTabs>
   );
 }
 

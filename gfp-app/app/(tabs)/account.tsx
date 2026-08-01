@@ -6,6 +6,7 @@ import { useCached } from '../../src/hooks/useCached';
 import { EP, WEB } from '../../src/api/endpoints';
 import { useAuth } from '../../src/auth/AuthContext';
 import { useLocale } from '../../src/i18n/locale';
+import { SwipeTabs } from '../../components/SwipeTabs';
 import { useRouter } from 'expo-router';
 import { C, F, R } from '../../constants/gfp';
 
@@ -73,7 +74,7 @@ export default function AccountScreen() {
   const paidUntil = prettyDate(b?.paid_until);
 
   return (
-    <View style={{ flex: 1, backgroundColor: C.bg }}>
+    <SwipeTabs style={{ backgroundColor: C.bg }}>
       <AppHeader title={t('tab.account')} />
       <ScrollView
         contentContainerStyle={st.body}
@@ -174,7 +175,7 @@ export default function AccountScreen() {
 
         <View style={{ height: 24 }} />
       </ScrollView>
-    </View>
+    </SwipeTabs>
   );
 }
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, Switch, Text, TextInput, View, Alert } from 'react-native';
 import { Card, H2, Muted, Btn, Chip } from '../../components/ui';
 import { AppHeader } from '../../components/AppHeader'; import { formatCoach } from '../../src/lib/coachText'; import { FullPlanCard, NearbyPlaces, WorkoutDetail, SupplementsDay } from '../../components/HistoryExtras';
 import { useCached } from '../../src/hooks/useCached';
@@ -8,6 +8,8 @@ import { EP } from '../../src/api/endpoints';
 import { C, F, R } from '../../constants/gfp';
 import { useLocale } from '../../src/i18n/locale';
 import { translateCoach } from '../../src/i18n/coach';
+import { applyReminderSchedule } from '../../src/lib/notify';
+import { SwipeTabs } from '../../components/SwipeTabs';
 
 export default function HistoryScreen() {
   const { t } = useLocale();
@@ -47,7 +49,7 @@ export default function HistoryScreen() {
   const workouts: any[] = Array.isArray(day?.workouts) ? day.workouts : Array.isArray(day?.workouts?.items) ? day.workouts.items : [];
 
   return (
-    <View style={{ flex: 1, backgroundColor: C.bg }}>
+    <SwipeTabs style={{ backgroundColor: C.bg }}>
       <AppHeader title={t('tab.history')} subtitle={active ?? undefined} />
       <ScrollView
         contentContainerStyle={st.body}
@@ -128,7 +130,7 @@ export default function HistoryScreen() {
 
         <View style={{ height: 24 }} />
       </ScrollView>
-    </View>
+    </SwipeTabs>
   );
 }
 
@@ -203,7 +205,29 @@ function NotificationPrefs() {
     } finally {
       setBusy(false);
     }
+    // Device reminders: (re)build the local schedule to match the toggles.
+    if (key !== 'email_enabled') {
+      const ok = await applyReminderSchedule({
+        meals: !!next.meals_enabled,
+        workouts: !!next.workouts_enabled,
+        checkins: !!next.checkins_enabled,
+      });
+      if (!ok && v) Alert.alert(t('history.notifications'), t('notif.denied'));
+    }
   }
+
+  // Keep the device schedule in sync with saved prefs on screen load.
+  useEffect(() => {
+    if (!p) return;
+    if (p.meals_enabled || p.workouts_enabled || p.checkins_enabled) {
+      applyReminderSchedule({
+        meals: !!p.meals_enabled,
+        workouts: !!p.workouts_enabled,
+        checkins: !!p.checkins_enabled,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [p === null]);
 
   const Row = ({ k, label }: { k: string; label: string }) => (
     <View style={st.prefRow}>

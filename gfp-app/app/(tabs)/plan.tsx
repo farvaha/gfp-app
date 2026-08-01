@@ -3,6 +3,7 @@ import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native
 import { useRouter } from 'expo-router';
 import { useLocale } from '../../src/i18n/locale';
 import { fmt, trGoal } from '../../src/i18n/food';
+import { SwipeTabs } from '../../components/SwipeTabs';
 import { Card, H2, Muted, Btn, Chip } from '../../components/ui';
 import { PlanBody } from '../../components/PlanBody';
 import { PlanDetail } from '../../components/PlanDetail';
@@ -26,7 +27,7 @@ export default function PlanScreen() {
   const hasRichPlanText = planText.trim().length > 40;
 
   return (
-    <View style={{ flex: 1, backgroundColor: C.bg }}>
+    <SwipeTabs style={{ backgroundColor: C.bg }}>
       <AppHeader title={t('tab.plan')} />
       <ScrollView
         contentContainerStyle={st.body}
@@ -86,7 +87,7 @@ export default function PlanScreen() {
 
         <View style={{ height: 24 }} />
       </ScrollView>
-    </View>
+    </SwipeTabs>
   );
 }
 

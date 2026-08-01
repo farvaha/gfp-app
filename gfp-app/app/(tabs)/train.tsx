@@ -9,6 +9,7 @@ import { C, F, R } from '../../constants/gfp';
 import { useLocale } from '../../src/i18n/locale';
 import { trDayName } from '../../src/i18n/food';
 import { translateCoach } from '../../src/i18n/coach';
+import { SwipeTabs } from '../../components/SwipeTabs';
 import { MUSCLES, MuscleKey, suggestionsFor } from '../../src/lib/muscles';
 
 /** One editable set row: reps + weight, exactly like the web app. */
@@ -197,7 +198,7 @@ export default function TrainScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: C.bg }}>
+    <SwipeTabs style={{ backgroundColor: C.bg }}>
       <AppHeader title={t('tab.train')} subtitle={day?.name ? trDayName(day.name) : undefined} />
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={'padding'}>
@@ -367,7 +368,7 @@ export default function TrainScreen() {
         <View style={{ height: 24 }} />
       </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </SwipeTabs>
   );
 }
 
