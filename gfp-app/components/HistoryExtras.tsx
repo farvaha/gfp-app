@@ -102,22 +102,31 @@ export function NearbyPlaces() {
     <Card>
       <H2>{t('history.nearby')}</H2>
       <Muted>{t('history.nearbyHint')}</Muted>
+      {/* What to look for - a simple selector, not two competing actions. */}
       <View style={s.row}>
         <Btn
-          label={t('nearby.findGyms')}
+          label={t('nearby.gyms')}
+          kind={kind === 'gym' ? undefined : 'ghost'}
           onPress={() => run('gym')}
           loading={busy && kind === 'gym'}
           style={{ flex: 1 }}
         />
         <Btn
           label={t('nearby.stores')}
-          kind="ghost"
+          kind={kind === 'store' ? undefined : 'ghost'}
           onPress={() => run('store')}
           loading={busy && kind === 'store'}
           style={{ flex: 1 }}
         />
       </View>
-      {!!msg && <Muted>{msg}</Muted>}
+      {/* The real action: hand over to the Maps app of the user's choice. */}
+      <Btn
+        label={t('nearby.openMaps')}
+        onPress={() => openMaps(kind)}
+        style={{ marginTop: 10 }}
+      />
+      <Muted>{t('nearby.mapsHint')}</Muted>
+      {!!msg && <Muted style={{ marginTop: 6 }}>{msg}</Muted>}
       {(items ?? []).slice(0, 10).map((p: any, i: number) => (
         <TouchableOpacity key={i} style={s.item} onPress={() => openMaps(kind, String(p.name || p.title || ''))}>
           <Text style={s.name}>{p.name || p.title || 'Place'}</Text>
@@ -129,13 +138,6 @@ export function NearbyPlaces() {
           )}
         </TouchableOpacity>
       ))}
-      <Btn
-        label={t('nearby.openMaps')}
-        kind="ghost"
-        onPress={() => openMaps(kind)}
-        style={{ marginTop: 10 }}
-      />
-      <Muted>{t('nearby.mapsHint')}</Muted>
     </Card>
   );
 }
