@@ -3,6 +3,7 @@ import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native
 import { useRouter } from 'expo-router';
 import { useLocale } from '../../src/i18n/locale';
 import { fmt, trGoal } from '../../src/i18n/food';
+import { RichPlan } from '../../components/RichPlan';
 import { SwipeTabs } from '../../components/SwipeTabs';
 import { Card, H2, Muted, Btn, Chip } from '../../components/ui';
 import { PlanBody } from '../../components/PlanBody';
@@ -69,6 +70,9 @@ export default function PlanScreen() {
 
         {/* Full protocol detail - macros, split, nutrition - drawn natively. */}
         {!!c && <PlanDetail protocol={prot.data} />}
+
+        {/* Engine v2 rich plan - supplements, progression, full report + PDF. */}
+        {!!prot.data?.rich && <RichPlan rich={prot.data.rich} />}
 
         {/* Server-rendered plan document, only when it has real content. */}
         {!!c && hasRichPlanText && (
