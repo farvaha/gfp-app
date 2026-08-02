@@ -222,6 +222,9 @@ export const Api = {
     const lang = require('../i18n/locale').getLocale();
     return api<any>(EP.weeklyReview + (lang && lang !== 'en' ? `?lang=${lang}` : ''));
   },
+  /** POST /companion/plan-build — the server plan engine (single brain). */
+  buildPlan: (answers: Record<string, any>) =>
+    api<any>(EP.planBuild, { method: 'POST', body: answers }),
   supplements: (date?: string) =>
     api<any>(EP.supplements + (date ? `?date=${encodeURIComponent(date)}` : '')),
   addSupplement: (payload: { date?: string; name: string; dose?: string }) =>
